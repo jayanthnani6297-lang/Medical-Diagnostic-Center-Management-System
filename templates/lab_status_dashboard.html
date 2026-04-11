@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lab Status Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .header h1 {
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .stat-card.collected { border-bottom: 4px solid #6c757d; }
+        .stat-card.processing { border-bottom: 4px solid #007bff; }
+        .stat-card.completed { border-bottom: 4px solid #28a745; }
+        .stat-card.verified { border-bottom: 4px solid #17a2b8; }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .status-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .section-header h2 {
+            color: #333;
+            font-size: 20px;
+        }
+        
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-collected { background: #6c757d; color: white; }
+        .badge-processing { background: #007bff; color: white; }
+        .badge-completed { background: #28a745; color: white; }
+        .badge-verified { background: #17a2b8; color: white; }
+        .badge-stat { background: #dc3545; color: white; }
+        .badge-urgent { background: #ffc107; color: black; }
+        .badge-normal { background: #6c757d; color: white; }
+        
+        .test-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .test-item {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+        
+        .test-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .test-patient {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .test-type {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .test-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            color: #718096;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .test-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .result-count {
+            font-size: 12px;
+            color: #28a745;
+        }
+        
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .avg-times {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .avg-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .avg-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .avg-test {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .avg-value {
+            font-size: 24px;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .avg-unit {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .refresh-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .refresh-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .auto-refresh-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #28a745;
+            animation: pulse 2s infinite;
+        }
+        
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .refresh-btn:hover:not(:disabled) {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .refresh-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .countdown {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .priority-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .priority-stat { background-color: #dc3545; color: white; }
+        .priority-urgent { background-color: #ffc107; color: black; }
+        .priority-normal { background-color: #6c757d; color: white; }
+        
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.1);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .test-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .test-meta {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .test-footer {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            
+            .refresh-bar {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 Lab Status Dashboard</h1>
+            <p>Real-time tracking of all laboratory tests</p>
+        </div>
+        
+        <div class="refresh-bar">
+            <div class="refresh-info">
+                <span class="auto-refresh-indicator"></span>
+                <span>Auto-refreshes every <span id="countdown">30</span> seconds</span>
+            </div>
+            <button class="refresh-btn" onclick="refreshDashboard()" id="refreshBtn">
+                <span>🔄</span> Refresh Data
+            </button>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card collected">
+                <div class="stat-icon">📦</div>
+                <div class="stat-value">{{ summary.get('Collected', 0) }}</div>
+                <div class="stat-label">Collected</div>
+            </div>
+            <div class="stat-card processing">
+                <div class="stat-icon">⚙️</div>
+                <div class="stat-value">{{ summary.get('Processing', 0) }}</div>
+                <div class="stat-label">Processing</div>
+            </div>
+            <div class="stat-card completed">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value">{{ summary.get('Completed', 0) }}</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card verified">
+                <div class="stat-icon">🔐</div>
+                <div class="stat-value">{{ summary.get('Verified', 0) }}</div>
+                <div class="stat-label">Verified</div>
+            </div>
+        </div>
+        
+        <div class="dashboard-grid">
+            <!-- Collected Section -->
+            <div class="status-section">
+                <div class="section-header">
+                    <h2>📦 Collected ({{ grouped_tests['Collected']|length }})</h2>
+                    <span class="badge badge-collected">Awaiting Processing</span>
+                </div>
+                <div class="test-list">
+                    {% if grouped_tests['Collected'] %}
+                        {% for test in grouped_tests['Collected'] %}
+                            <div class="test-item">
+                                <div class="test-header">
+                                    <span class="test-patient">{{ test[1] }}</span>
+                                    <span class="priority-badge priority-{{ test[5]|lower }}">{{ test[5] }}</span>
+                                </div>
+                                <div class="test-type">{{ test[2]|upper }} Test</div>
+                                <div class="test-meta">
+                                    <span>ID: #{{ test[0] }}</span>
+                                    <span>📅 {{ test[4] }}</span>
+                                </div>
+                                <div class="test-footer">
+                                    <span class="result-count">📊 {{ test[6] }} parameters</span>
+                                    <a href="/lab_patient/{{ test[1] }}" class="btn-sm btn-primary">Process</a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <p>No tests in Collected status</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Processing Section -->
+            <div class="status-section">
+                <div class="section-header">
+                    <h2>⚙️ Processing ({{ grouped_tests['Processing']|length }})</h2>
+                    <span class="badge badge-processing">In Progress</span>
+                </div>
+                <div class="test-list">
+                    {% if grouped_tests['Processing'] %}
+                        {% for test in grouped_tests['Processing'] %}
+                            <div class="test-item">
+                                <div class="test-header">
+                                    <span class="test-patient">{{ test[1] }}</span>
+                                    <span class="priority-badge priority-{{ test[5]|lower }}">{{ test[5] }}</span>
+                                </div>
+                                <div class="test-type">{{ test[2]|upper }} Test</div>
+                                <div class="test-meta">
+                                    <span>ID: #{{ test[0] }}</span>
+                                    <span>📅 {{ test[4] }}</span>
+                                </div>
+                                <div class="test-footer">
+                                    <span class="result-count">📊 {{ test[6] }} parameters</span>
+                                    <a href="/enter_test/{{ test[0] }}" class="btn-sm btn-primary">Continue</a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <p>No tests in Processing status</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Completed Section -->
+            <div class="status-section">
+                <div class="section-header">
+                    <h2>✅ Completed ({{ grouped_tests['Completed']|length }})</h2>
+                    <span class="badge badge-completed">Ready for Verification</span>
+                </div>
+                <div class="test-list">
+                    {% if grouped_tests['Completed'] %}
+                        {% for test in grouped_tests['Completed'] %}
+                            <div class="test-item">
+                                <div class="test-header">
+                                    <span class="test-patient">{{ test[1] }}</span>
+                                    <span class="priority-badge priority-{{ test[5]|lower }}">{{ test[5] }}</span>
+                                </div>
+                                <div class="test-type">{{ test[2]|upper }} Test</div>
+                                <div class="test-meta">
+                                    <span>ID: #{{ test[0] }}</span>
+                                    <span>📊 {{ test[6] }} parameters</span>
+                                </div>
+                                <div class="test-footer">
+                                    <a href="/test_timeline/{{ test[0] }}" class="btn-sm btn-info">Timeline</a>
+                                    <form action="/update_test_status/{{ test[0] }}" method="POST" style="display:inline;" class="verify-form">
+                                        <input type="hidden" name="status" value="Verified">
+                                        <input type="hidden" name="note" value="Verified by lab technician">
+                                        <button type="submit" class="btn-sm" style="background: #17a2b8; color: white; border: none; cursor: pointer;">Verify</button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <p>No tests in Completed status</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Verified Section -->
+            <div class="status-section">
+                <div class="section-header">
+                    <h2>🔐 Verified ({{ grouped_tests['Verified']|length }})</h2>
+                    <span class="badge badge-verified">Finalized</span>
+                </div>
+                <div class="test-list">
+                    {% if grouped_tests['Verified'] %}
+                        {% for test in grouped_tests['Verified'] %}
+                            <div class="test-item">
+                                <div class="test-header">
+                                    <span class="test-patient">{{ test[1] }}</span>
+                                    <span class="priority-badge priority-{{ test[5]|lower }}">{{ test[5] }}</span>
+                                </div>
+                                <div class="test-type">{{ test[2]|upper }} Test</div>
+                                <div class="test-meta">
+                                    <span>ID: #{{ test[0] }}</span>
+                                    <span>✅ Verified</span>
+                                </div>
+                                <div class="test-footer">
+                                    <a href="/test_timeline/{{ test[0] }}" class="btn-sm btn-info">View Timeline</a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <p>No verified tests yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Average Processing Times -->
+        <div class="avg-times">
+            <h3>⏱️ Average Processing Times by Test Type</h3>
+            <div class="avg-grid">
+                <div class="avg-item">
+                    <div class="avg-test">🩸 CBC</div>
+                    <div class="avg-value">{{ avg_times.get('cbc', 'N/A') }}</div>
+                    <div class="avg-unit">minutes</div>
+                </div>
+                <div class="avg-item">
+                    <div class="avg-test">💉 Diabetes</div>
+                    <div class="avg-value">{{ avg_times.get('diabetes', 'N/A') }}</div>
+                    <div class="avg-unit">minutes</div>
+                </div>
+                <div class="avg-item">
+                    <div class="avg-test">🫀 Lipid</div>
+                    <div class="avg-value">{{ avg_times.get('lipid', 'N/A') }}</div>
+                    <div class="avg-unit">minutes</div>
+                </div>
+                <div class="avg-item">
+                    <div class="avg-test">❤️ BP</div>
+                    <div class="avg-value">{{ avg_times.get('bp', 'N/A') }}</div>
+                    <div class="avg-unit">minutes</div>
+                </div>
+                <div class="avg-item">
+                    <div class="avg-test">⚖️ BMI</div>
+                    <div class="avg-value">{{ avg_times.get('bmi', 'N/A') }}</div>
+                    <div class="avg-unit">minutes</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="javascript:history.back()" class="btn-sm btn-primary" style="padding: 12px 30px; font-size: 16px;">← Go Back</a>
+            {% if session.get('role') == 'collector' %}
+                <a href="/collector_dashboard" class="btn-sm btn-info" style="padding: 12px 30px; font-size: 16px;">📋 Collector Dashboard</a>
+            {% elif session.get('role') == 'technician' %}
+                <a href="/technician_dashboard" class="btn-sm btn-info" style="padding: 12px 30px; font-size: 16px;">🔬 Technician Dashboard</a>
+        {% endif %}
+    </div>
+    </div>
+    
+    <script>
+        // Refresh function with visual feedback
+        function refreshDashboard() {
+            const btn = document.getElementById('refreshBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span>⏳</span> Refreshing...';
+            btn.disabled = true;
+            
+            // Add a small delay to show the refreshing state
+            setTimeout(function() {
+                location.reload();
+            }, 300);
+        }
+        
+        // Auto-refresh countdown and trigger
+        let timeLeft = 30;
+        const countdownElement = document.getElementById('countdown');
+        
+        function updateCountdown() {
+            timeLeft -= 1;
+            if (timeLeft <= 0) {
+                timeLeft = 30;
+                refreshDashboard();
+            }
+            countdownElement.textContent = timeLeft;
+        }
+        
+        // Start countdown
+        setInterval(updateCountdown, 1000);
+        
+        // Add loading indicators to verify buttons
+        document.querySelectorAll('.verify-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const btn = this.querySelector('button');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '⏳ Verifying...';
+                btn.disabled = true;
+                
+                // Allow form to submit after a short delay
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 2000);
+            });
+        });
+        
+        // Add animation to stat cards
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach((card, index) => {
+            card.style.animation = `fadeIn 0.5s ease ${index * 0.1}s`;
+        });
+        
+        // Add fade-in animation style
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Highlight new items (if any)
+        function highlightNewItems() {
+            const items = document.querySelectorAll('.test-item');
+            items.forEach((item, index) => {
+                if (index < 3) { // Highlight first 3 items
+                    item.style.animation = 'highlight 2s';
+                }
+            });
+        }
+        
+        // Add highlight animation
+        const highlightStyle = document.createElement('style');
+        highlightStyle.textContent = `
+            @keyframes highlight {
+                0% {
+                    background-color: rgba(40, 167, 69, 0.2);
+                }
+                100% {
+                    background-color: #f8fafc;
+                }
+            }
+        `;
+        document.head.appendChild(highlightStyle);
+        
+        // Run highlight on load
+        highlightNewItems();
+    </script>
+</body>
+</html>

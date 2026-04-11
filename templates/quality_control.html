@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+
+{% block title %}Quality Control - Medical Laboratory System{% endblock %}
+
+{% block content %}
+<div class="header" style="background: linear-gradient(135deg, var(--info), var(--info-dark));">
+    <div class="flex justify-between">
+        <div>
+            <h1 style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 36px;">🔬</span>
+                Quality Control Dashboard
+            </h1>
+            <p style="color: var(--light-gray); margin-top: 5px;">
+                Monitor and manage laboratory quality control
+            </p>
+        </div>
+        <div>
+            <a href="/admin_dashboard" class="btn btn-secondary">← Back to Admin</a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid-4" style="margin-bottom: 30px;">
+    <div class="card text-center" style="border-bottom: 3px solid var(--success);">
+        <div style="font-size: 36px; color: var(--success); margin-bottom: 10px;">✅</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);" id="passedCount">0</div>
+        <div class="text-gray">QC Passed</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--warning);">
+        <div style="font-size: 36px; color: var(--warning); margin-bottom: 10px;">⏳</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);" id="pendingCount">0</div>
+        <div class="text-gray">QC Pending</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--danger);">
+        <div style="font-size: 36px; color: var(--danger); margin-bottom: 10px;">❌</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);" id="failedCount">0</div>
+        <div class="text-gray">QC Failed</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--accent);">
+        <div style="font-size: 36px; color: var(--accent); margin-bottom: 10px;">📊</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);" id="totalCount">0</div>
+        <div class="text-gray">Total Tests</div>
+    </div>
+</div>
+
+<!-- QC Controls -->
+<div class="grid-2" style="gap: 30px; margin-bottom: 30px;">
+    <!-- Run QC Form -->
+    <div class="card">
+        <h3 style="color: var(--primary); margin-bottom: 20px;">🧪 Run Quality Control</h3>
+        
+        <form id="qcForm" onsubmit="runQC(event)">
+            <div class="form-group">
+                <label>Test Type</label>
+                <select id="testType" class="form-control" required>
+                    <option value="">Select Test Type</option>
+                    <option value="cbc">🩸 Complete Blood Count (CBC)</option>
+                    <option value="diabetes">💉 Diabetes Panel</option>
+                    <option value="lipid">🫀 Lipid Profile</option>
+                    <option value="lft">🧪 Liver Function (LFT)</option>
+                    <option value="kft">💧 Kidney Function (KFT)</option>
+                    <option value="thyroid">🏥 Thyroid</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Control Level</label>
+                <select id="controlLevel" class="form-control" required>
+                    <option value="">Select Level</option>
+                    <option value="1">Level 1 (Normal)</option>
+                    <option value="2">Level 2 (Abnormal)</option>
+                    <option value="3">Level 3 (Critical)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Lot Number</label>
+                <input type="text" id="lotNumber" class="form-control" value="QC-{{ [1000, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009] | random }}" required>
+            </div>
+            
+            <button type="submit" class="btn btn-success" style="width: 100%;">
+                🔬 Run QC Test
+            </button>
+        </form>
+    </div>
+    
+    <!-- QC Statistics -->
+    <div class="card">
+        <h3 style="color: var(--primary); margin-bottom: 20px;">📊 QC Statistics</h3>
+        
+        <div style="margin-bottom: 20px;">
+            <h4>Today's Performance</h4>
+            <div class="progress" style="height: 20px; margin: 10px 0;">
+                <div class="progress-bar progress-bar-success" id="successRate" style="width: 0%;">0%</div>
+            </div>
+            <p id="successRateText">Success Rate: 0%</p>
+        </div>
+        
+        <div>
+            <h4>Control Chart</h4>
+            <div style="height: 200px; background: var(--light-gray); border-radius: 8px; padding: 20px; text-align: center;">
+                <canvas id="qcChart" style="width: 100%; height: 100%;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent QC Results -->
+<div class="card">
+    <h3 style="color: var(--primary); margin-bottom: 20px;">📋 Recent QC Results</h3>
+    
+    <div style="overflow-x: auto;">
+        <table id="qcTable">
+            <thead>
+                <tr>
+                    <th>Date/Time</th>
+                    <th>Test Type</th>
+                    <th>Level</th>
+                    <th>Lot Number</th>
+                    <th>Result</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="qcResults">
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: var(--gray);">
+                        No QC results available. Run a QC test to see results.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- QC Guidelines -->
+<div class="card" style="margin-top: 30px; background: linear-gradient(135deg, var(--light-gray), white);">
+    <h3 style="color: var(--primary); margin-bottom: 15px;">📚 QC Guidelines</h3>
+    
+    <div class="grid-3" style="gap: 20px;">
+        <div>
+            <h4 style="color: var(--accent);">Westgard Rules</h4>
+            <ul style="color: var(--gray);">
+                <li>1₂s: One control exceeding 2SD</li>
+                <li>1₃s: One control exceeding 3SD</li>
+                <li>2₂s: Two consecutive exceeding 2SD</li>
+                <li>R₄s: Range between controls >4SD</li>
+                <li>4₁s: Four consecutive >1SD</li>
+                <li>10x: Ten consecutive on same side</li>
+            </ul>
+        </div>
+        
+        <div>
+            <h4 style="color: var(--accent);">Frequency</h4>
+            <ul style="color: var(--gray);">
+                <li>Daily: Before patient testing</li>
+                <li>After calibration</li>
+                <li>After maintenance</li>
+                <li>New reagent lot</li>
+                <li>Every 8 hours of operation</li>
+            </ul>
+        </div>
+        
+        <div>
+            <h4 style="color: var(--accent);">Actions</h4>
+            <ul style="color: var(--gray);">
+                <li>Failed QC: Reject patient results</li>
+                <li>Investigate cause</li>
+                <li>Document corrective action</li>
+                <li>Repeat QC before patient testing</li>
+                <li>Contact manufacturer if needed</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Store QC results in localStorage (simulated database)
+    let qcResults = JSON.parse(localStorage.getItem('qcResults') || '[]');
+    
+    function updateStats() {
+        const total = qcResults.length;
+        const passed = qcResults.filter(r => r.status === 'Pass').length;
+        const failed = qcResults.filter(r => r.status === 'Fail').length;
+        const pending = qcResults.filter(r => r.status === 'Pending').length;
+        
+        document.getElementById('passedCount').textContent = passed;
+        document.getElementById('failedCount').textContent = failed;
+        document.getElementById('pendingCount').textContent = pending;
+        document.getElementById('totalCount').textContent = total;
+        
+        if (total > 0) {
+            const successRate = Math.round((passed / total) * 100);
+            document.getElementById('successRate').style.width = successRate + '%';
+            document.getElementById('successRate').textContent = successRate + '%';
+            document.getElementById('successRateText').textContent = `Success Rate: ${successRate}%`;
+        }
+        
+        renderTable();
+        updateChart();
+    }
+    
+    function renderTable() {
+        const tbody = document.getElementById('qcResults');
+        
+        if (qcResults.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: var(--gray);">
+                        No QC results available. Run a QC test to see results.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        let html = '';
+        qcResults.slice(0, 10).forEach((result, index) => {
+            html += `
+                <tr>
+                    <td>${result.datetime}</td>
+                    <td>${result.testType}</td>
+                    <td>Level ${result.level}</td>
+                    <td>${result.lotNumber}</td>
+                    <td>${result.value || 'N/A'}</td>
+                    <td>
+                        <span class="badge badge-${result.status === 'Pass' ? 'success' : result.status === 'Fail' ? 'danger' : 'warning'}">
+                            ${result.status}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-info" onclick="viewDetails(${index})">Details</button>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        tbody.innerHTML = html;
+    }
+    
+    function runQC(event) {
+        event.preventDefault();
+        
+        const testType = document.getElementById('testType').value;
+        const controlLevel = document.getElementById('controlLevel').value;
+        const lotNumber = document.getElementById('lotNumber').value;
+        
+        if (!testType || !controlLevel || !lotNumber) {
+            alert('Please fill all fields');
+            return;
+        }
+        
+        // Simulate QC result
+        const randomValue = Math.random();
+        const status = randomValue > 0.2 ? 'Pass' : 'Fail'; // 80% pass rate
+        const value = status === 'Pass' ? 
+            (95 + Math.random() * 10).toFixed(2) : 
+            (80 + Math.random() * 30).toFixed(2);
+        
+        const result = {
+            datetime: new Date().toLocaleString(),
+            testType: document.getElementById('testType').options[document.getElementById('testType').selectedIndex].text,
+            level: controlLevel,
+            lotNumber: lotNumber,
+            value: value,
+            status: status,
+            details: {
+                mean: 100,
+                sd: 5,
+                cv: 5,
+                rules: status === 'Fail' ? ['1₃s', 'R₄s'] : []
+            }
+        };
+        
+        qcResults.unshift(result);
+        localStorage.setItem('qcResults', JSON.stringify(qcResults));
+        
+        updateStats();
+        
+        // Show result message
+        alert(`QC ${status}: Value = ${value}`);
+        
+        // Reset form with new lot number
+        document.getElementById('lotNumber').value = `QC-${Math.floor(1000 + Math.random() * 9000)}`;
+    }
+    
+    function viewDetails(index) {
+        const result = qcResults[index];
+        alert(`
+QC Details:
+Test: ${result.testType}
+Level: ${result.level}
+Lot: ${result.lotNumber}
+Value: ${result.value}
+Status: ${result.status}
+Mean: ${result.details.mean}
+SD: ${result.details.sd}
+CV: ${result.details.cv}%
+Rules violated: ${result.details.rules.join(', ') || 'None'}
+        `);
+    }
+    
+    function updateChart() {
+        // Simple chart simulation
+        const canvas = document.getElementById('qcChart');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        if (qcResults.length === 0) {
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#666';
+            ctx.textAlign = 'center';
+            ctx.fillText('No data available', canvas.width/2, canvas.height/2);
+            return;
+        }
+        
+        // Draw simple control chart
+        const recentResults = qcResults.slice(0, 20).reverse();
+        const width = canvas.width;
+        const height = canvas.height;
+        const padding = 40;
+        
+        ctx.beginPath();
+        ctx.strokeStyle = '#ddd';
+        ctx.lineWidth = 1;
+        
+        // Draw grid
+        for (let i = 0; i <= 4; i++) {
+            const y = padding + (i * (height - 2*padding) / 4);
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(width - padding, y);
+            ctx.strokeStyle = '#eee';
+            ctx.stroke();
+        }
+        
+        // Draw control limits
+        const mean = 100;
+        const sd = 5;
+        const values = recentResults.map(r => parseFloat(r.value) || mean);
+        
+        // Draw mean line
+        ctx.beginPath();
+        ctx.moveTo(padding, height/2);
+        ctx.lineTo(width - padding, height/2);
+        ctx.strokeStyle = '#28a745';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Draw ±2SD lines
+        ctx.beginPath();
+        ctx.moveTo(padding, height/2 - 40);
+        ctx.lineTo(width - padding, height/2 - 40);
+        ctx.strokeStyle = '#ffc107';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(padding, height/2 + 40);
+        ctx.lineTo(width - padding, height/2 + 40);
+        ctx.strokeStyle = '#ffc107';
+        ctx.stroke();
+        
+        // Draw ±3SD lines
+        ctx.beginPath();
+        ctx.moveTo(padding, height/2 - 60);
+        ctx.lineTo(width - padding, height/2 - 60);
+        ctx.strokeStyle = '#dc3545';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(padding, height/2 + 60);
+        ctx.lineTo(width - padding, height/2 + 60);
+        ctx.strokeStyle = '#dc3545';
+        ctx.stroke();
+        
+        // Plot points
+        const xStep = (width - 2*padding) / (values.length - 1 || 1);
+        
+        ctx.beginPath();
+        ctx.strokeStyle = '#667eea';
+        ctx.lineWidth = 2;
+        
+        values.forEach((value, i) => {
+            const x = padding + i * xStep;
+            const deviation = (value - mean) / sd * 20; // Scale factor
+            const y = height/2 - deviation;
+            
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+            
+            // Draw point
+            ctx.fillStyle = Math.abs(deviation) > 60 ? '#dc3545' : 
+                           Math.abs(deviation) > 40 ? '#ffc107' : '#28a745';
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, 2*Math.PI);
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        });
+        
+        ctx.strokeStyle = '#667eea';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+    
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateStats();
+    });
+</script>
+
+<style>
+    .badge-success { background: var(--success); color: white; }
+    .badge-danger { background: var(--danger); color: white; }
+    .badge-warning { background: var(--warning); color: black; }
+    
+    .progress-bar-success { background: var(--success); }
+    
+    #qcChart {
+        width: 100%;
+        height: 100%;
+        background: white;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}

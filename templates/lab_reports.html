@@ -1,0 +1,427 @@
+{% extends "base.html" %}
+
+{% block title %}Lab Reports - Medical Laboratory System{% endblock %}
+
+{% block content %}
+<div class="header" style="background: linear-gradient(135deg, var(--info), var(--info-dark));">
+    <div class="flex justify-between">
+        <div>
+            <h1 style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 36px;">📊</span>
+                Generated Reports
+            </h1>
+            <p style="color: var(--light-gray); margin-top: 5px;">
+                View and manage all laboratory reports
+            </p>
+        </div>
+        <div>
+            <a href="/lab_dashboard" class="btn btn-secondary" style="margin-right: 10px;">← Back to Lab Dashboard</a>
+            <a href="/lab_status_dashboard" class="btn btn-info">📊 Status Board</a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid-3" style="margin-bottom: 30px;">
+    <div class="card text-center" style="border-bottom: 3px solid var(--info);">
+        <div style="font-size: 36px; color: var(--info); margin-bottom: 10px;">📋</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">{{ reports|length }}</div>
+        <div class="text-gray">Total Reports</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--success);">
+        <div style="font-size: 36px; color: var(--success); margin-bottom: 10px;">✓</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">
+            {{ reports|selectattr('2', '>=', 70)|list|length }}
+        </div>
+        <div class="text-gray">High Risk Cases</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--warning);">
+        <div style="font-size: 36px; color: var(--warning); margin-bottom: 10px;">⏳</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">
+            {{ reports|selectattr('3', 'equalto', None)|list|length + reports|selectattr('3', 'equalto', '')|list|length }}
+        </div>
+        <div class="text-gray">Pending Diagnosis</div>
+    </div>
+</div>
+
+<!-- Search and Filter Bar -->
+<div class="card" style="margin-bottom: 20px; padding: 15px;">
+    <div class="flex justify-between" style="flex-wrap: wrap; gap: 15px;">
+        <div style="flex: 2; min-width: 250px;">
+            <input type="text" id="searchInput" placeholder="🔍 Search by patient name or report ID..." 
+                   style="width: 100%; padding: 10px; border: 2px solid var(--light-gray); border-radius: 5px;">
+        </div>
+        <div style="flex: 1; min-width: 150px;">
+            <select id="riskFilter" style="width: 100%; padding: 10px; border: 2px solid var(--light-gray); border-radius: 5px;">
+                <option value="all">All Risk Levels</option>
+                <option value="critical">Critical (≥70)</option>
+                <option value="high">High (40-69)</option>
+                <option value="moderate">Moderate (20-39)</option>
+                <option value="low">Low (<20)</option>
+            </select>
+        </div>
+        <div style="flex: 1; min-width: 150px;">
+            <select id="diagnosisFilter" style="width: 100%; padding: 10px; border: 2px solid var(--light-gray); border-radius: 5px;">
+                <option value="all">All Reports</option>
+                <option value="pending">Pending Diagnosis</option>
+                <option value="diagnosed">Diagnosed</option>
+            </select>
+        </div>
+        <div>
+            <button onclick="clearFilters()" class="btn btn-secondary btn-sm">Clear Filters</button>
+        </div>
+    </div>
+</div>
+
+<!-- Reports Table -->
+<div class="card">
+    <div class="flex justify-between" style="margin-bottom: 20px;">
+        <h3 style="color: var(--primary);">📋 Recent Reports</h3>
+        <span class="badge badge-info">Last 50 Reports</span>
+    </div>
+    
+    {% if reports %}
+    <div style="overflow-x: auto;">
+        <table id="reportsTable">
+            <thead>
+                <tr>
+                    <th>Report ID</th>
+                    <th>Patient Name</th>
+                    <th>Risk Score</th>
+                    <th>Risk Level</th>
+                    <th>Diagnosis</th>
+                    <th>Generated Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in reports %}
+                <tr class="report-row" 
+                    data-risk="{{ report[2] }}" 
+                    data-diagnosis="{{ 'pending' if not report[3] or report[3] == '' else 'diagnosed' }}"
+                    data-name="{{ report[1]|lower }}"
+                    data-id="{{ report[0] }}">
+                    <td><strong>#{{ report[0] }}</strong></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-weight: 600; color: var(--primary);">{{ report[1] }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if report[2] >= 70 %}
+                            <span class="badge badge-stat">{{ "%.1f"|format(report[2]) }}</span>
+                        {% elif report[2] >= 40 %}
+                            <span class="badge badge-urgent">{{ "%.1f"|format(report[2]) }}</span>
+                        {% elif report[2] >= 20 %}
+                            <span class="badge badge-warning">{{ "%.1f"|format(report[2]) }}</span>
+                        {% else %}
+                            <span class="badge badge-normal">{{ "%.1f"|format(report[2]) }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if report[2] >= 70 %}
+                            <span style="color: var(--danger); font-weight: 600;">🔴 Critical</span>
+                        {% elif report[2] >= 40 %}
+                            <span style="color: var(--warning); font-weight: 600;">🟡 High</span>
+                        {% elif report[2] >= 20 %}
+                            <span style="color: var(--info); font-weight: 600;">🔵 Moderate</span>
+                        {% else %}
+                            <span style="color: var(--success); font-weight: 600;">🟢 Low</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if report[3] %}
+                            <span class="badge badge-success">Diagnosed</span>
+                            <div style="font-size: 11px; color: var(--gray); margin-top: 3px; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" 
+                                 title="{{ report[3] }}">
+                                {{ report[3][:30] + '...' if report[3]|length > 30 else report[3] }}
+                            </div>
+                        {% else %}
+                            <span class="badge badge-warning">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td style="color: var(--gray); font-size: 13px;">{{ report[4] }}</td>
+                    <td>
+                        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                            <a href="/lab_view_report/{{ report[0] }}" class="btn btn-primary btn-sm" 
+                               style="padding: 5px 10px; font-size: 12px;">
+                                👁️ View
+                            </a>
+                            <a href="/test_timeline/{{ report[0] }}" class="btn btn-info btn-sm" 
+                               style="padding: 5px 10px; font-size: 12px;">
+                                📊 Timeline
+                            </a>
+                            {% if not report[3] %}
+                            <a href="/add_diagnosis/{{ report[0] }}" class="btn btn-success btn-sm" 
+                               style="padding: 5px 10px; font-size: 12px;">
+                                ✏️ Diagnose
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info" style="text-align: center; padding: 40px;">
+        <div style="font-size: 48px; margin-bottom: 20px;">📊</div>
+        <h4 style="color: var(--info); margin-bottom: 10px;">No Reports Generated</h4>
+        <p style="color: var(--gray);">Reports will appear here once tests are completed and processed.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Export Options -->
+<div class="card" style="margin-top: 30px; background: linear-gradient(135deg, var(--light-gray), white);">
+    <div class="flex justify-between" style="align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h4 style="color: var(--primary); margin-bottom: 5px;">📥 Export Options</h4>
+            <p style="color: var(--gray); font-size: 13px;">Download reports in various formats</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="exportToCSV()" class="btn btn-success btn-sm">
+                📊 Export to CSV
+            </button>
+            <button onclick="printReportList()" class="btn btn-info btn-sm">
+                🖨️ Print List
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Search and filter functionality
+    const searchInput = document.getElementById('searchInput');
+    const riskFilter = document.getElementById('riskFilter');
+    const diagnosisFilter = document.getElementById('diagnosisFilter');
+    const table = document.getElementById('reportsTable');
+    
+    function filterTable() {
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const riskValue = riskFilter ? riskFilter.value : 'all';
+        const diagnosisValue = diagnosisFilter ? diagnosisFilter.value : 'all';
+        
+        const rows = document.querySelectorAll('.report-row');
+        
+        rows.forEach(row => {
+            const patientName = row.getAttribute('data-name') || '';
+            const reportId = row.getAttribute('data-id') || '';
+            const risk = parseFloat(row.getAttribute('data-risk')) || 0;
+            const diagnosis = row.getAttribute('data-diagnosis') || 'pending';
+            
+            // Search filter
+            const matchesSearch = searchTerm === '' || 
+                                 patientName.includes(searchTerm) || 
+                                 reportId.toString().includes(searchTerm);
+            
+            // Risk filter
+            let matchesRisk = true;
+            if (riskValue === 'critical') {
+                matchesRisk = risk >= 70;
+            } else if (riskValue === 'high') {
+                matchesRisk = risk >= 40 && risk < 70;
+            } else if (riskValue === 'moderate') {
+                matchesRisk = risk >= 20 && risk < 40;
+            } else if (riskValue === 'low') {
+                matchesRisk = risk < 20;
+            }
+            
+            // Diagnosis filter
+            let matchesDiagnosis = true;
+            if (diagnosisValue === 'pending') {
+                matchesDiagnosis = diagnosis === 'pending';
+            } else if (diagnosisValue === 'diagnosed') {
+                matchesDiagnosis = diagnosis === 'diagnosed';
+            }
+            
+            // Show/hide row
+            if (matchesSearch && matchesRisk && matchesDiagnosis) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // Show count of visible rows
+        const visibleCount = document.querySelectorAll('.report-row:not([style*="display: none"])').length;
+        updateResultCount(visibleCount);
+    }
+    
+    function updateResultCount(count) {
+        // Create or update result count display
+        let countDisplay = document.getElementById('resultCount');
+        if (!countDisplay) {
+            countDisplay = document.createElement('div');
+            countDisplay.id = 'resultCount';
+            countDisplay.style.cssText = 'margin-top: 10px; font-size: 13px; color: var(--gray); text-align: right;';
+            document.querySelector('.card').appendChild(countDisplay);
+        }
+        countDisplay.textContent = `Showing ${count} of {{ reports|length }} reports`;
+    }
+    
+    function clearFilters() {
+        if (searchInput) searchInput.value = '';
+        if (riskFilter) riskFilter.value = 'all';
+        if (diagnosisFilter) diagnosisFilter.value = 'all';
+        filterTable();
+    }
+    
+    // Export to CSV
+    function exportToCSV() {
+        const rows = document.querySelectorAll('.report-row');
+        let csv = 'Report ID,Patient Name,Risk Score,Risk Level,Diagnosis,Generated Date\n';
+        
+        rows.forEach(row => {
+            if (row.style.display !== 'none') {
+                const cells = row.querySelectorAll('td');
+                const reportId = cells[0].textContent.replace('#', '').trim();
+                const patientName = cells[1].textContent.trim();
+                const riskScore = cells[2].textContent.trim();
+                const riskLevel = cells[3].textContent.trim().replace(/[🔴🟡🔵🟢]/g, '').trim();
+                const diagnosis = cells[4].querySelector('.badge-success') ? 'Diagnosed' : 'Pending';
+                const date = cells[5].textContent.trim();
+                
+                csv += `"${reportId}","${patientName}","${riskScore}","${riskLevel}","${diagnosis}","${date}"\n`;
+            }
+        });
+        
+        // Download CSV file
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `lab_reports_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+    }
+    
+    // Print report list
+    function printReportList() {
+        const printWindow = window.open('', '_blank');
+        const styles = document.querySelector('style').innerHTML;
+        const rows = document.querySelectorAll('.report-row');
+        
+        let printContent = `
+            <html>
+            <head>
+                <title>Lab Reports List</title>
+                <style>
+                    ${styles}
+                    body { padding: 20px; font-family: Arial, sans-serif; }
+                    h1 { color: #333; margin-bottom: 20px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th { background: #667eea; color: white; padding: 10px; text-align: left; }
+                    td { padding: 10px; border-bottom: 1px solid #ddd; }
+                    .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; }
+                    .badge-stat { background: #dc3545; color: white; }
+                    .badge-urgent { background: #ffc107; color: black; }
+                    .badge-warning { background: #17a2b8; color: white; }
+                    .badge-normal { background: #28a745; color: white; }
+                    .badge-success { background: #28a745; color: white; }
+                    .badge-warning { background: #ffc107; color: black; }
+                </style>
+            </head>
+            <body>
+                <h1>Laboratory Reports List</h1>
+                <p>Generated on: ${new Date().toLocaleString()}</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Report ID</th>
+                            <th>Patient Name</th>
+                            <th>Risk Score</th>
+                            <th>Risk Level</th>
+                            <th>Diagnosis</th>
+                            <th>Generated Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        rows.forEach(row => {
+            if (row.style.display !== 'none') {
+                const cells = row.querySelectorAll('td');
+                printContent += '<tr>';
+                for (let i = 0; i < 6; i++) {
+                    printContent += `<td>${cells[i].innerHTML}</td>`;
+                }
+                printContent += '</tr>';
+            }
+        });
+        
+        printContent += `
+                    </tbody>
+                </table>
+            </body>
+            </html>
+        `;
+        
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.print();
+    }
+    
+    // Event listeners
+    if (searchInput) searchInput.addEventListener('input', filterTable);
+    if (riskFilter) riskFilter.addEventListener('change', filterTable);
+    if (diagnosisFilter) diagnosisFilter.addEventListener('change', filterTable);
+    
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', function() {
+        filterTable();
+        
+        // Add animation to table rows
+        const rows = document.querySelectorAll('.report-row');
+        rows.forEach((row, index) => {
+            row.style.animation = `fadeIn 0.3s ease ${index * 0.05}s`;
+        });
+    });
+    
+    // Auto-refresh every 60 seconds
+    setTimeout(function() {
+        location.reload();
+    }, 60000);
+</script>
+
+<style>
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .report-row {
+        transition: all 0.3s;
+    }
+    
+    .report-row:hover {
+        background-color: var(--light-gray);
+        transform: translateX(5px);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .flex.justify-between {
+            flex-direction: column;
+        }
+        
+        .flex.justify-between > div {
+            width: 100%;
+        }
+        
+        .btn-sm {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}

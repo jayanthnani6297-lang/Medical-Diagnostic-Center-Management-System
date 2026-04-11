@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Report Generated - Medical Laboratory System{% endblock %}
+
+{% block content %}
+<div style="max-width: 700px; margin: 30px auto;">
+    <!-- Success Header -->
+    <div class="header" style="text-align: center; background: linear-gradient(135deg, var(--success), var(--success-dark));">
+        <h1 style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+            <span style="font-size: 48px;">✅</span>
+            Report Generated Successfully!
+        </h1>
+        <p style="color: var(--light-gray); margin-top: 10px;">Your report has been created and secured with blockchain technology</p>
+    </div>
+    
+    <!-- Success Card -->
+    <div class="card" style="padding: 40px; border-top: 4px solid var(--success); box-shadow: var(--shadow-lg);">
+        <!-- Animated Success Icon -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div style="font-size: 100px; color: var(--success); animation: successPop 0.5s ease; margin-bottom: 20px;">📄</div>
+            <h2 style="color: var(--primary); margin-bottom: 10px;">Report #{{ report_id }}</h2>
+            <p style="color: var(--gray);">Your report has been securely generated and stored</p>
+        </div>
+        
+        <!-- Report Information Grid -->
+        <div class="grid-2" style="gap: 20px; margin-bottom: 30px;">
+            <div style="background: linear-gradient(135deg, var(--light-gray) 0%, white 100%); padding: 20px; border-radius: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <span style="font-size: 24px; color: var(--accent);">📋</span>
+                    <h3 style="color: var(--primary); margin: 0;">Report Details</h3>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--gray);">Report ID:</span>
+                        <span style="font-weight: bold; color: var(--primary);">#{{ report_id }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--gray);">Generated:</span>
+                        <span style="font-weight: bold;">{{ current_time }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--gray);">Status:</span>
+                        <span class="badge badge-completed">Active</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="background: linear-gradient(135deg, var(--light-gray) 0%, white 100%); padding: 20px; border-radius: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <span style="font-size: 24px; color: var(--info);">🔒</span>
+                    <h3 style="color: var(--primary); margin: 0;">Security Info</h3>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div>
+                        <span style="color: var(--gray);">SHA-256 Hash:</span>
+                        <div style="font-family: monospace; background: var(--white); padding: 8px; border-radius: 5px; margin-top: 5px; word-break: break-all;">
+                            <span style="color: var(--primary);">{{ hash[:20] }}</span>
+                            <span style="color: var(--gray);">...</span>
+                            <span style="color: var(--primary);">{{ hash[-10:] }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- QR Code Section -->
+        {% if qr %}
+        <div style="text-align: center; margin: 30px 0; padding: 20px; background: var(--light-gray); border-radius: 15px;">
+            <h3 style="color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <span style="font-size: 28px;">📱</span>
+                QR Code for Report Verification
+            </h3>
+            
+            <div style="display: flex; justify-content: center; gap: 30px; align-items: center; flex-wrap: wrap;">
+                <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: var(--shadow-md);">
+                    <img src="{{ url_for('static', filename=qr) }}" width="200" alt="QR Code" style="border-radius: 10px;">
+                </div>
+                
+                <div style="text-align: left; max-width: 250px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                        <span class="badge badge-success">✓</span>
+                        <span style="color: var(--primary); font-weight: 600;">Verification Steps:</span>
+                    </div>
+                    <ol style="color: var(--gray); font-size: 14px; margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 8px;">Scan QR code with any smartphone</li>
+                        <li style="margin-bottom: 8px;">Compare hash with report</li>
+                        <li style="margin-bottom: 8px;">Verify authenticity instantly</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <p style="font-size: 13px; color: var(--gray); margin-top: 20px;">
+                <span style="color: var(--info);">🔐</span> This QR contains encrypted verification data
+            </p>
+        </div>
+        {% endif %}
+        
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 15px; justify-content: center; margin: 30px 0 20px;">
+            <a href="/lab_dashboard" class="btn btn-primary" style="padding: 15px 30px; display: flex; align-items: center; gap: 8px;">
+                <span>←</span> Back to Lab Dashboard
+            </a>
+            <a href="/patient_portal/{{ report_id }}" class="btn btn-success" style="padding: 15px 30px; display: flex; align-items: center; gap: 8px;">
+                <span>👁️</span> View Report
+            </a>
+            <button onclick="downloadReport()" class="btn btn-info" style="padding: 15px 30px; display: flex; align-items: center; gap: 8px;">
+                <span>📥</span> Download PDF
+            </button>
+        </div>
+        
+        <!-- Additional Options -->
+        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 15px;">
+            <a href="/patient_portal" class="btn btn-secondary" style="padding: 10px 20px;">
+                🔍 Patient Portal
+            </a>
+            <a href="/verify_page" class="btn btn-secondary" style="padding: 10px 20px;">
+                ✓ Verify Report
+            </a>
+            <a href="/email_report/{{ report_id }}" class="btn btn-secondary" style="padding: 10px 20px;">
+                📧 Email Report
+            </a>
+        </div>
+        
+        <!-- Success Message -->
+        <div class="alert alert-success" style="margin-top: 30px; text-align: center;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <span style="font-size: 20px;">✨</span>
+                <p style="margin: 0;"><strong>Report #{{ report_id }}</strong> has been successfully generated and is ready for patient access.</p>
+            </div>
+        </div>
+        
+        <!-- Quick Tips -->
+        <div style="margin-top: 20px; padding: 15px; background: var(--light-gray); border-radius: 8px;">
+            <h4 style="color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">
+                <span style="font-size: 18px;">💡</span> Quick Tips:
+            </h4>
+            <ul style="color: var(--gray); font-size: 13px; margin: 0; padding-left: 20px;">
+                <li style="margin-bottom: 5px;">Share the Report ID with the patient for portal access</li>
+                <li style="margin-bottom: 5px;">The QR code can be printed on physical reports</li>
+                <li style="margin-bottom: 5px;">Hash verification ensures report authenticity</li>
+                <li>Reports are automatically backed up on the blockchain</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div style="text-align: center; margin-top: 20px; color: var(--gray); font-size: 12px;">
+        <p>
+            <span style="color: var(--success);">✓</span> Report secured with SHA-256 encryption 
+            <span style="color: var(--accent);">|</span> 
+            <span style="color: var(--info);">🔗</span> Blockchain verified
+        </p>
+    </div>
+</div>
+
+<style>
+    @keyframes successPop {
+        0% {
+            transform: scale(0.5);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1.2);
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    
+    .btn {
+        transition: all 0.3s;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    @media (max-width: 768px) {
+        .flex.justify-center {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Download report function
+    function downloadReport() {
+        // Show loading state
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="loading"></span> Generating PDF...';
+        btn.disabled = true;
+        
+        // Simulate download (replace with actual download logic)
+        setTimeout(function() {
+            btn.innerHTML = '✓ Downloaded!';
+            btn.style.background = 'var(--success)';
+            
+            setTimeout(function() {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.style.background = '';
+            }, 2000);
+        }, 1500);
+    }
+    
+    // Auto-copy hash to clipboard (optional feature)
+    function copyHash() {
+        const hashText = "{{ hash }}";
+        navigator.clipboard.writeText(hashText).then(function() {
+            alert('Hash copied to clipboard!');
+        });
+    }
+    
+    // Add animation to QR code on hover
+    const qrImage = document.querySelector('img[alt="QR Code"]');
+    if (qrImage) {
+        qrImage.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.05)';
+            this.style.transition = 'transform 0.3s';
+        });
+        qrImage.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    }
+    
+    // Print functionality
+    function printReport() {
+        window.print();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Verification History - Medical Laboratory System{% endblock %}
+
+{% block content %}
+<div class="header" style="background: linear-gradient(135deg, var(--info), var(--info-dark));">
+    <div class="flex justify-between">
+        <div>
+            <h1 style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 36px;">📋</span>
+                Verification History
+            </h1>
+            <p style="color: var(--light-gray); margin-top: 5px;">
+                Recent report verification attempts
+            </p>
+        </div>
+        <div>
+            <a href="/patient_portal" class="btn btn-secondary">← Back to Portal</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="color: var(--primary); margin-bottom: 20px;">Recent Verifications</h3>
+    
+    {% if verifications %}
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Actor</th>
+                    <th>Action</th>
+                    <th>Details</th>
+                    <th>IP Address</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ver in verifications %}
+                <tr>
+                    <td>{{ ver[0] }}</td>
+                    <td>{{ ver[1] }}</td>
+                    <td>{{ ver[2] }}</td>
+                    <td>
+                        {% if ver[3] %}
+                            {% set details = ver[3]|fromjson %}
+                            Report ID: {{ details.report_id if details.report_id else 'N/A' }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>{{ ver[4] }}</td>
+                    <td>
+                        {% if ver[5] == 'SUCCESS' %}
+                            <span class="badge badge-success">Success</span>
+                        {% elif ver[5] == 'FAILED' %}
+                            <span class="badge badge-danger">Failed</span>
+                        {% else %}
+                            <span class="badge badge-warning">{{ ver[5] }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info" style="text-align: center; padding: 40px;">
+        <div style="font-size: 48px; margin-bottom: 20px;">📋</div>
+        <h4 style="color: var(--info); margin-bottom: 10px;">No Verification History</h4>
+        <p style="color: var(--gray);">No report verifications have been recorded yet.</p>
+    </div>
+    {% endif %}
+</div>
+
+<div style="text-align: center; margin-top: 20px;">
+    <a href="/verify_page" class="btn btn-primary">Verify Another Report</a>
+</div>
+{% endblock %}

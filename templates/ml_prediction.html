@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}ML Prediction for {{ patient_name }}{% endblock %}
+
+{% block content %}
+<div class="header" style="background: linear-gradient(135deg, var(--accent), var(--accent-dark));">
+    <div class="flex justify-between">
+        <div>
+            <h1>🤖 Disease Prediction</h1>
+            <p>Patient: {{ patient_name }} (ID: #{{ patient_id }})</p>
+        </div>
+        <a href="/ml/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
+</div>
+
+<div class="card" style="background: linear-gradient(135deg, #f0f9ff, white);">
+    <h3>Primary Diagnosis</h3>
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; align-items: center;">
+        <div>
+            <div style="font-size: 48px; margin-bottom: 10px;">
+                {% if prediction.primary_diagnosis == 'normal' %}✅
+                {% elif prediction.risk_level == 'High' %}⚠️⚠️⚠️
+                {% elif prediction.risk_level == 'Moderate' %}⚠️⚠️
+                {% else %}⚠️{% endif %}
+            </div>
+            <h2 style="font-size: 36px; 
+                {% if prediction.risk_level == 'High' %}color: var(--danger);
+                {% elif prediction.risk_level == 'Moderate' %}color: var(--warning);
+                {% else %}color: var(--success);{% endif %}">
+                {{ prediction.primary_diagnosis|replace('_', ' ')|title }}
+            </h2>
+            <p class="lead">
+                Risk Level: <strong>{{ prediction.risk_level }}</strong> | 
+                Confidence: <strong>{{ "%.1f"|format(prediction.confidence) }}%</strong>
+            </p>
+        </div>
+        <div style="text-align: center;">
+            <div class="progress-circle" style="width: 120px; height: 120px; margin: 0 auto;">
+                <svg viewBox="0 0 36 36" style="width: 100%; height: 100%;">
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none" stroke="#e2e8f0" stroke-width="3" />
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none" 
+                        stroke="{% if prediction.risk_level == 'High' %}var(--danger){% elif prediction.risk_level == 'Moderate' %}var(--warning){% else %}var(--success){% endif %}"
+                        stroke-width="3" 
+                        stroke-dasharray="{{ prediction.confidence }}, 100" />
+                </svg>
+                <div style="position: relative; top: -80px; font-size: 24px; font-weight: bold;">
+                    {{ "%.0f"|format(prediction.confidence) }}%
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <h3>Top Predictions</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Disease</th>
+                    <th>Probability</th>
+                    <th>Confidence</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pred in prediction.top_predictions %}
+                <tr>
+                    <td>{{ pred.disease|replace('_', ' ')|title }}</td>
+                    <td>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar" style="width: {{ pred.probability * 100 }}%; 
+                                {% if loop.first and pred.disease != 'normal' %}background: var(--danger);
+                                {% elif pred.disease == 'normal' %}background: var(--success);
+                                {% else %}background: var(--info);{% endif %}">
+                                {{ "%.1f"|format(pred.probability * 100) }}%
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ "%.1f"|format(pred.confidence) }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3>Test Results Used</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for param, value in test_results.items() %}
+                {% if value > 0 %}
+                <tr>
+                    <td>{{ param|replace('_', ' ')|title }}</td>
+                    <td>{{ value }}</td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Health Recommendations</h3>
+    <ul style="list-style-type: none; padding: 0;">
+        {% for rec in recommendations %}
+        <li style="margin-bottom: 10px; padding: 10px; background: var(--light-gray); border-radius: 5px;">
+            <span style="color: var(--primary); margin-right: 10px;">✓</span> {{ rec }}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<style>
+    .progress-circle {
+        position: relative;
+        display: inline-block;
+    }
+    .progress-circle svg {
+        transform: rotate(-90deg);
+    }
+</style>
+{% endblock %}

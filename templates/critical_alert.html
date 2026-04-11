@@ -1,0 +1,30 @@
+<div class="critical-alert" style="background: var(--danger); color: white; padding: 15px; border-radius: 5px; margin: 10px 0; animation: blink 1s infinite;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 24px;">⚠️</span>
+        <div style="flex: 1;">
+            <strong style="font-size: 16px;">CRITICAL VALUE ALERT</strong><br>
+            <span style="font-size: 14px;">Patient: {{ patient_name }} (ID: {{ patient_id }})</span><br>
+            <span style="font-size: 14px;">Test: {{ test_name }} = <strong>{{ test_value }}</strong> (Critical: {{ critical_range }})</span>
+        </div>
+        <button onclick="acknowledgeAlert('{{ alert_id }}')" class="btn btn-light" style="background: white; color: var(--danger); border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            Acknowledge
+        </button>
+    </div>
+</div>
+
+<style>
+    @keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; background: #c0392b; }
+        100% { opacity: 1; }
+    }
+    
+    .critical-alert {
+        transition: all 0.3s;
+    }
+    
+    .critical-alert:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+</style>

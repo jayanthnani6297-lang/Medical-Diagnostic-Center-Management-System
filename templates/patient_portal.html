@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Portal - Medical Laboratory System{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 30px auto;">
+    <!-- Header with gradient -->
+    <div class="header" style="text-align: center; background: linear-gradient(135deg, var(--primary), var(--accent-dark));">
+        <h1 style="font-size: 36px; margin-bottom: 10px;">🏥 Patient Portal</h1>
+        <p style="color: var(--light-gray); font-size: 16px;">Secure access to your medical reports</p>
+    </div>
+    
+    <!-- Main Access Card -->
+    <div class="card" style="padding: 40px; border-top: 4px solid var(--accent); box-shadow: var(--shadow-lg);">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div style="font-size: 72px; color: var(--accent); margin-bottom: 20px; animation: pulse 2s infinite;">🔐</div>
+            <h2 style="color: var(--primary); margin-bottom: 10px;">Enter Report ID</h2>
+            <p style="color: var(--gray); font-size: 15px; line-height: 1.6;">
+                Please enter the Report ID provided by your healthcare provider<br>
+                to access your confidential medical reports.
+            </p>
+        </div>
+        
+        <!-- Report Access Form -->
+        <form method="POST" action="/patient_view" id="reportForm">
+            <div class="form-group">
+                <label style="color: var(--primary); font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                    <span style="color: var(--accent); font-size: 20px;">📋</span> Report ID
+                </label>
+                <input type="number" name="report_id" id="reportId"
+                       placeholder="Enter your Report ID" 
+                       required
+                       style="width: 100%; 
+                              padding: 15px; 
+                              border: 2px solid var(--light-gray);
+                              border-radius: 10px;
+                              font-size: 18px;
+                              text-align: center;
+                              letter-spacing: 2px;
+                              transition: all 0.3s;">
+                <p style="color: var(--gray); font-size: 12px; margin-top: 5px;">
+                    Example: 1, 2, 3, 4, 5, etc.
+                </p>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" 
+                    style="width: 100%; 
+                           padding: 15px; 
+                           font-size: 18px;
+                           background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+                           display: flex;
+                           align-items: center;
+                           justify-content: center;
+                           gap: 10px;">
+                <span>🔍</span> View My Report
+            </button>
+        </form>
+        
+        <!-- Quick Tips -->
+        <div style="background: linear-gradient(135deg, var(--light-gray) 0%, white 100%); padding: 15px; border-radius: 10px; margin: 20px 0;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <span style="font-size: 24px;">💡</span>
+                <strong style="color: var(--primary);">Quick Tips</strong>
+            </div>
+            <ul style="color: var(--gray); font-size: 14px; padding-left: 20px; margin: 0;">
+                <li style="margin-bottom: 5px;">Your Report ID is printed on your lab receipt</li>
+                <li style="margin-bottom: 5px;">IDs are case-sensitive and number-only</li>
+                <li style="margin-bottom: 5px;">Reports are available for 30 days after generation</li>
+                <li>Contact support if you've lost your Report ID</li>
+            </ul>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 15px; margin: 25px 0 15px;">
+            <a href="/verify_page" class="btn btn-info" style="flex: 1; padding: 12px;">
+                <span style="margin-right: 5px;">✓</span> Verify Report
+            </a>
+            <a href="/" class="btn btn-secondary" style="flex: 1; padding: 12px;">
+                <span style="margin-right: 5px;">🏠</span> Home
+            </a>
+        </div>
+        
+        <!-- Security Information -->
+        <div class="alert alert-info" style="margin-top: 20px; background: linear-gradient(135deg, #d1ecf1, white);">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="font-size: 32px;">🔒</div>
+                <div>
+                    <strong style="color: var(--info-dark); display: block; margin-bottom: 5px;">SHA-256 Secured</strong>
+                    <p style="font-size: 13px; color: var(--gray); margin: 0;">
+                        All reports are encrypted using SHA-256 blockchain technology.<br>
+                        Verify authenticity using QR code or manual hash verification.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- QR Code Simulation -->
+        <div style="text-align: center; margin-top: 20px;">
+            <div style="display: inline-block; background: var(--light-gray); padding: 15px; border-radius: 10px;">
+                <div style="font-size: 48px; margin-bottom: 5px;">📱</div>
+                <p style="color: var(--gray); font-size: 12px; margin: 0;">Scan QR on your report for quick access</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer with Support Info -->
+    <div style="text-align: center; margin-top: 20px; color: var(--gray); font-size: 13px;">
+        <p>
+            <span style="color: var(--accent);;">📞</span> Need help? Contact support: 
+            <a href="tel:1-800-LAB-TEST" style="color: var(--accent); text-decoration: none;">1-800-LAB-TEST</a> | 
+            <a href="mailto:support@labmed.com" style="color: var(--accent); text-decoration: none;">support@labmed.com</a>
+        </p>
+        <p style="margin-top: 5px;">© 2024 Medical Laboratory System. All rights reserved.</p>
+    </div>
+</div>
+
+<style>
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.05);
+            opacity: 0.8;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    
+    input[name="report_id"]:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+        outline: none;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        background: linear-gradient(135deg, var(--accent-dark), var(--accent)) !important;
+    }
+    
+    .card {
+        transition: all 0.3s;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-format report ID input - REMOVED STRICT VALIDATION
+    const reportInput = document.getElementById('reportId');
+    const reportForm = document.getElementById('reportForm');
+    
+    if (reportInput) {
+        reportInput.addEventListener('input', function(e) {
+            // Only allow numbers
+            this.value = this.value.replace(/[^0-9]/g, '');
+            
+            // Visual feedback based on whether value exists
+            if (this.value.length > 0) {
+                this.style.borderColor = 'var(--success)';
+            } else {
+                this.style.borderColor = 'var(--light-gray)';
+            }
+        });
+        
+        // Simple validation - just check if not empty
+        reportForm.addEventListener('submit', function(e) {
+            if (!reportInput.value || reportInput.value.trim() === '') {
+                e.preventDefault();
+                alert('Please enter a Report ID');
+                reportInput.style.borderColor = 'var(--danger)';
+            }
+        });
+    }
+    
+    // Remember last entered ID (optional feature)
+    const lastId = localStorage.getItem('lastReportId');
+    if (lastId && reportInput) {
+        reportInput.value = lastId;
+        reportInput.style.borderColor = 'var(--success)';
+    }
+    
+    // Save ID on form submit
+    reportForm.addEventListener('submit', function() {
+        if (reportInput.value.length > 0) {
+            localStorage.setItem('lastReportId', reportInput.value);
+        }
+    });
+
+    // Add typing animation to lock icon
+    let lockIcon = document.querySelector('div[style*="font-size: 72px"]');
+    if (lockIcon) {
+        setInterval(function() {
+            lockIcon.style.transform = 'scale(1.1)';
+            setTimeout(function() {
+                lockIcon.style.transform = 'scale(1)';
+            }, 200);
+        }, 3000);
+    }
+</script>
+{% endblock %}

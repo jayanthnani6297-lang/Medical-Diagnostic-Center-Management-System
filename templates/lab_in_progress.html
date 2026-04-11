@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+
+{% block title %}Tests In Progress - Medical Laboratory System{% endblock %}
+
+{% block content %}
+<div class="header" style="background: linear-gradient(135deg, var(--info), var(--info-dark));">
+    <div class="flex justify-between">
+        <div>
+            <h1 style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 36px;">⚙️</span>
+                Tests In Progress
+            </h1>
+            <p style="color: var(--light-gray); margin-top: 5px;">
+                Currently processing tests - real-time status
+            </p>
+        </div>
+        <div>
+            <a href="/lab_dashboard" class="btn btn-secondary" style="margin-right: 10px;">← Back to Lab Dashboard</a>
+            <a href="/lab_status_dashboard" class="btn btn-info">📊 Status Board</a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid-3" style="margin-bottom: 30px;">
+    <div class="card text-center" style="border-bottom: 3px solid var(--info);">
+        <div style="font-size: 36px; color: var(--info); margin-bottom: 10px;">⚙️</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">{{ tests|length }}</div>
+        <div class="text-gray">In Progress</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--warning);">
+        <div style="font-size: 36px; color: var(--warning); margin-bottom: 10px;">⏳</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">
+            {{ tests|selectattr('2', 'equalto', 'cbc')|list|length }}
+        </div>
+        <div class="text-gray">CBC Tests</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--success);">
+        <div style="font-size: 36px; color: var(--success); margin-bottom: 10px;">⏱️</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);" id="avgTime">-</div>
+        <div class="text-gray">Avg. Processing Time</div>
+    </div>
+</div>
+
+<!-- Search and Filter Bar -->
+<div class="card" style="margin-bottom: 20px; padding: 15px;">
+    <div class="flex justify-between" style="flex-wrap: wrap; gap: 15px;">
+        <div style="flex: 2; min-width: 250px;">
+            <input type="text" id="searchInput" placeholder="🔍 Search by patient name or test ID..." 
+                   style="width: 100%; padding: 10px; border: 2px solid var(--light-gray); border-radius: 5px;">
+        </div>
+        <div style="flex: 1; min-width: 150px;">
+            <select id="testTypeFilter" style="width: 100%; padding: 10px; border: 2px solid var(--light-gray); border-radius: 5px;">
+                <option value="all">All Test Types</option>
+                <option value="cbc">🩸 CBC</option>
+                <option value="diabetes">💉 Diabetes</option>
+                <option value="lipid">🫀 Lipid</option>
+                <option value="bp">❤️ BP</option>
+                <option value="bmi">⚖️ BMI</option>
+            </select>
+        </div>
+        <div>
+            <button onclick="clearFilters()" class="btn btn-secondary btn-sm">Clear Filters</button>
+            <button onclick="refreshData()" class="btn btn-info btn-sm" id="refreshBtn">
+                🔄 Refresh
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="card">
+    <div class="flex justify-between" style="margin-bottom: 20px;">
+        <h3 style="color: var(--primary);">📋 Tests Currently Processing</h3>
+        <div class="refresh-info">
+            <span class="auto-refresh-indicator"></span>
+            <span class="text-gray" style="font-size: 13px;" id="countdown">Auto-refresh in 30s</span>
+        </div>
+    </div>
+    
+    {% if tests %}
+    <div style="overflow-x: auto;">
+        <table id="progressTable">
+            <thead>
+                <tr>
+                    <th>Test ID</th>
+                    <th>Patient Name</th>
+                    <th>Test Type</th>
+                    <th>Started</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for test in tests %}
+                {% set start_time = test[3] %}
+                {% set duration = calculate_duration(start_time) if calculate_duration else '--:--' %}
+                <tr class="test-row" 
+                    data-test-id="{{ test[0] }}"
+                    data-patient="{{ test[1]|lower }}"
+                    data-type="{{ test[2]|lower }}"
+                    data-start="{{ test[3] }}">
+                    <td><strong>#{{ test[0] }}</strong></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-weight: 600; color: var(--primary);">{{ test[1] }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if test[2] == 'cbc' %}
+                            <span class="badge badge-info">🩸 Complete Blood Count</span>
+                        {% elif test[2] == 'diabetes' %}
+                            <span class="badge badge-info">💉 Diabetes Panel</span>
+                        {% elif test[2] == 'lipid' %}
+                            <span class="badge badge-info">🫀 Lipid Profile</span>
+                        {% elif test[2] == 'bp' %}
+                            <span class="badge badge-info">❤️ Blood Pressure</span>
+                        {% elif test[2] == 'bmi' %}
+                            <span class="badge badge-info">⚖️ BMI</span>
+                        {% else %}
+                            <span class="badge badge-info">{{ test[2]|upper }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="color: var(--gray);">{{ test[3] }}</td>
+                    <td>
+                        <span class="duration-badge" data-start="{{ test[3] }}">
+                            <span class="loading-spinner-small" style="display: none;"></span>
+                            <span class="duration-value">{{ duration }}</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-processing">In Progress</span>
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                            <a href="/enter_test/{{ test[0] }}" class="btn btn-primary btn-sm" 
+                               style="padding: 5px 10px; font-size: 12px;">
+                                ✍️ Enter Results
+                            </a>
+                            <a href="/test_timeline/{{ test[0] }}" class="btn btn-info btn-sm" 
+                               style="padding: 5px 10px; font-size: 12px;">
+                                📊 Timeline
+                            </a>
+                            <form action="/simulate_machine/{{ test[0] }}" method="POST" style="display:inline;" class="simulate-form">
+                                <button type="submit" class="btn btn-success btn-sm simulate-btn"
+                                        style="padding: 5px 10px; font-size: 12px;">
+                                    🤖 Simulate
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info" style="text-align: center; padding: 40px;">
+        <div style="font-size: 48px; margin-bottom: 20px;">⚙️</div>
+        <h4 style="color: var(--info); margin-bottom: 10px;">No Tests In Progress</h4>
+        <p style="color: var(--gray);">All tests have been completed. Check the completed tests section.</p>
+        <div style="margin-top: 20px;">
+            <a href="/lab_completed" class="btn btn-success">View Completed Tests</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Quick Actions -->
+<div class="grid-3" style="margin-top: 30px;">
+    <div class="card text-center">
+        <div style="font-size: 32px; color: var(--success); margin-bottom: 10px;">✅</div>
+        <h4 style="color: var(--primary); margin-bottom: 5px;">Completed Tests</h4>
+        <p style="color: var(--gray); font-size: 13px; margin-bottom: 10px;">View all completed and verified tests</p>
+        <a href="/lab_completed" class="btn btn-success btn-sm" style="width: 100%;">View Completed</a>
+    </div>
+    
+    <div class="card text-center">
+        <div style="font-size: 32px; color: var(--warning); margin-bottom: 10px;">⏳</div>
+        <h4 style="color: var(--primary); margin-bottom: 5px;">Pending Collection</h4>
+        <p style="color: var(--gray); font-size: 13px; margin-bottom: 10px;">Samples waiting to be collected</p>
+        <a href="/collector_dashboard" class="btn btn-warning btn-sm" style="width: 100%;">View Pending</a>
+    </div>
+    
+    <div class="card text-center">
+        <div style="font-size: 32px; color: var(--accent); margin-bottom: 10px;">📊</div>
+        <h4 style="color: var(--primary); margin-bottom: 5px;">Status Dashboard</h4>
+        <p style="color: var(--gray); font-size: 13px; margin-bottom: 10px;">Complete lab status overview</p>
+        <a href="/lab_status_dashboard" class="btn btn-info btn-sm" style="width: 100%;">View Status</a>
+    </div>
+</div>
+
+<style>
+    .auto-refresh-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #28a745;
+        margin-right: 5px;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.5;
+            transform: scale(1.2);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    .duration-badge {
+        background: var(--light-gray);
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--primary);
+        display: inline-block;
+    }
+    
+    .loading-spinner-small {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid rgba(0,0,0,0.1);
+        border-radius: 50%;
+        border-top-color: var(--accent);
+        animation: spin 1s linear infinite;
+        margin-right: 5px;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .test-row {
+        transition: all 0.3s;
+    }
+    
+    .test-row:hover {
+        background-color: var(--light-gray);
+        transform: translateX(5px);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .flex.justify-between {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .btn-sm {
+            width: 100%;
+        }
+        
+        table {
+            font-size: 13px;
+        }
+        
+        td, th {
+            padding: 8px 5px;
+        }
+    }
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Helper function to calculate duration
+    function calculateDuration(startTime) {
+        if (!startTime) return '--:--';
+        
+        try {
+            const start = new Date(startTime).getTime();
+            const now = new Date().getTime();
+            const diffMs = now - start;
+            
+            if (diffMs < 0) return '--:--';
+            
+            const diffMins = Math.floor(diffMs / 60000);
+            const hours = Math.floor(diffMins / 60);
+            const mins = diffMins % 60;
+            
+            if (hours > 0) {
+                return `${hours}h ${mins}m`;
+            } else {
+                return `${mins}m`;
+            }
+        } catch (e) {
+            return '--:--';
+        }
+    }
+    
+    // Update all durations
+    function updateDurations() {
+        const durationElements = document.querySelectorAll('.duration-badge');
+        durationElements.forEach(elem => {
+            const startTime = elem.getAttribute('data-start');
+            const durationValue = elem.querySelector('.duration-value');
+            if (durationValue) {
+                durationValue.textContent = calculateDuration(startTime);
+            }
+        });
+        
+        // Update average time
+        updateAverageTime();
+    }
+    
+    // Calculate and update average processing time
+    function updateAverageTime() {
+        const durations = [];
+        document.querySelectorAll('.duration-badge').forEach(elem => {
+            const startTime = elem.getAttribute('data-start');
+            if (startTime) {
+                try {
+                    const start = new Date(startTime).getTime();
+                    const now = new Date().getTime();
+                    const diffMins = Math.floor((now - start) / 60000);
+                    if (diffMins > 0) {
+                        durations.push(diffMins);
+                    }
+                } catch (e) {}
+            }
+        });
+        
+        if (durations.length > 0) {
+            const avg = Math.round(durations.reduce((a, b) => a + b, 0) / durations.length);
+            const avgElement = document.getElementById('avgTime');
+            if (avgElement) {
+                avgElement.textContent = avg + ' min';
+            }
+        }
+    }
+    
+    // Search and filter functionality
+    const searchInput = document.getElementById('searchInput');
+    const testTypeFilter = document.getElementById('testTypeFilter');
+    
+    function filterTable() {
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const typeValue = testTypeFilter ? testTypeFilter.value : 'all';
+        
+        const rows = document.querySelectorAll('.test-row');
+        
+        rows.forEach(row => {
+            const patientName = row.getAttribute('data-patient') || '';
+            const testId = row.getAttribute('data-test-id') || '';
+            const testType = row.getAttribute('data-type') || '';
+            
+            // Search filter
+            const matchesSearch = searchTerm === '' || 
+                                 patientName.includes(searchTerm) || 
+                                 testId.toString().includes(searchTerm);
+            
+            // Test type filter
+            const matchesType = typeValue === 'all' || testType === typeValue;
+            
+            // Show/hide row
+            if (matchesSearch && matchesType) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // Show count of visible rows
+        const visibleCount = document.querySelectorAll('.test-row:not([style*="display: none"])').length;
+        updateResultCount(visibleCount);
+    }
+    
+    function updateResultCount(count) {
+        let countDisplay = document.getElementById('resultCount');
+        if (!countDisplay) {
+            countDisplay = document.createElement('div');
+            countDisplay.id = 'resultCount';
+            countDisplay.style.cssText = 'margin-top: 10px; font-size: 13px; color: var(--gray); text-align: right;';
+            document.querySelector('.card').appendChild(countDisplay);
+        }
+        countDisplay.textContent = `Showing ${count} of {{ tests|length }} tests`;
+    }
+    
+    function clearFilters() {
+        if (searchInput) searchInput.value = '';
+        if (testTypeFilter) testTypeFilter.value = 'all';
+        filterTable();
+    }
+    
+    function refreshData() {
+        const btn = document.getElementById('refreshBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="loading-spinner-small"></span> Refreshing...';
+        btn.disabled = true;
+        
+        setTimeout(function() {
+            location.reload();
+        }, 500);
+    }
+    
+    // Auto-refresh countdown
+    let timeLeft = 30;
+    const countdownElement = document.getElementById('countdown');
+    
+    function updateCountdown() {
+        timeLeft -= 1;
+        if (timeLeft <= 0) {
+            timeLeft = 30;
+            refreshData();
+        }
+        if (countdownElement) {
+            countdownElement.textContent = `Auto-refresh in ${timeLeft}s`;
+        }
+    }
+    
+    // Simulate form submission handling
+    document.querySelectorAll('.simulate-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const btn = this.querySelector('.simulate-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="loading-spinner-small"></span> Processing...';
+            btn.disabled = true;
+            
+            // Allow form to submit
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 5000);
+        });
+    });
+    
+    // Event listeners
+    if (searchInput) searchInput.addEventListener('input', filterTable);
+    if (testTypeFilter) testTypeFilter.addEventListener('change', filterTable);
+    
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Update durations every minute
+        updateDurations();
+        setInterval(updateDurations, 60000);
+        
+        // Initialize filter
+        filterTable();
+        
+        // Start countdown
+        setInterval(updateCountdown, 1000);
+        
+        // Add animation to rows
+        const rows = document.querySelectorAll('.test-row');
+        rows.forEach((row, index) => {
+            row.style.animation = `fadeIn 0.3s ease ${index * 0.05}s`;
+        });
+    });
+</script>
+{% endblock %}

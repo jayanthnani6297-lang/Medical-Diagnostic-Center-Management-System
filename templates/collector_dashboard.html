@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Collector Dashboard - Medical Laboratory System{% endblock %}
+
+{% block content %}
+<div class="header" style="background: linear-gradient(135deg, var(--info), var(--info-dark));">
+    <div class="flex justify-between">
+        <div>
+            <h1>🧪 Sample Collector Dashboard</h1>
+            <p style="color: var(--light-gray);">
+                Logged in as: <strong>{{ session['full_name'] or session['username'] }}</strong> 
+                <span class="badge badge-info" style="margin-left: 10px;">Collector</span>
+            </p>
+        </div>
+        <div>
+            <a href="/lab_status_dashboard" class="btn btn-secondary" style="margin-right: 10px;">📊 Lab Status</a>
+            <a href="/logout" class="btn btn-danger">🚪 Logout</a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid-3" style="margin-bottom: 30px;">
+    <div class="card text-center" style="border-bottom: 3px solid var(--warning);">
+        <div style="font-size: 36px; color: var(--warning); margin-bottom: 10px;">⏳</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">{{ pending_count }}</div>
+        <div class="text-gray">Pending Collection</div>
+    </div>
+    <div class="card text-center" style="border-bottom: 3px solid var(--success);">
+        <div style="font-size: 36px; color: var(--success); margin-bottom: 10px;">✅</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">{{ collected_count }}</div>
+        <div class="text-gray">Collected Today</div>
+    </div>
+    <div class="card text-center" style="border-bottom: 3px solid var(--info);">
+        <div style="font-size: 36px; color: var(--info); margin-bottom: 10px;">👤</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">{{ pending_collection|length }}</div>
+        <div class="text-gray">Patients Waiting</div>
+    </div>
+</div>
+
+<!-- Pending Collection Section -->
+<div class="card">
+    <div class="flex justify-between" style="margin-bottom: 20px;">
+        <h3 style="color: var(--primary);">📋 Patients Pending Collection</h3>
+        <span class="badge badge-warning">{{ pending_count }} tests</span>
+    </div>
+    
+    {% if pending_collection %}
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Patient ID</th>
+                    <th>Name</th>
+                    <th>Age/Gender</th>
+                    <th>Contact</th>
+                    <th>Priority</th>
+                    <th>Tests</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in pending_collection %}
+                <tr>
+                    <td><strong>#{{ patient.patient_id }}</strong></td>
+                    <td>{{ patient.name }}</td>
+                    <td>{{ patient.age }} / {{ patient.gender }}</td>
+                    <td>{{ patient.contact or 'N/A' }}</td>
+                    <td>
+                        {% if patient.priority == 'STAT' %}
+                            <span class="badge badge-stat">STAT</span>
+                        {% elif patient.priority == 'Urgent' %}
+                            <span class="badge badge-urgent">Urgent</span>
+                        {% else %}
+                            <span class="badge badge-normal">Normal</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% for test in patient.tests %}
+                            <span class="badge badge-info" style="margin: 2px;">
+                                {% if test == 'cbc' %}🩸 CBC
+                                {% elif test == 'diabetes' %}💉 Diabetes
+                                {% elif test == 'lipid' %}🫀 Lipid
+                                {% elif test == 'bp' %}❤️ BP
+                                {% elif test == 'bmi' %}⚖️ BMI
+                                {% elif test == 'lft' %}🧪 LFT
+                                {% elif test == 'kft' %}💧 KFT
+                                {% elif test == 'urine_routine' %}💛 Urine
+                                {% else %}{{ test|upper }}{% endif %}
+                            </span>
+                        {% endfor %}
+                        <span class="badge badge-primary" style="margin-left: 5px;">{{ patient.test_count }} tests</span>
+                    </td>
+                    <td>
+                        <a href="/collect_sample/{{ patient.patient_id }}" class="btn btn-primary btn-sm">
+                            🧪 Collect Samples
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-success" style="text-align: center; padding: 40px;">
+        <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
+        <h4 style="color: var(--success); margin-bottom: 10px;">All Caught Up!</h4>
+        <p style="color: var(--gray);">No patients pending collection at this time.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Collected Today Section -->
+<div class="card" style="margin-top: 30px;">
+    <div class="flex justify-between" style="margin-bottom: 20px;">
+        <h3 style="color: var(--primary);">✅ Collected Today</h3>
+        <span class="badge badge-success">{{ collected_count }} samples</span>
+    </div>
+    
+    {% if collected_today %}
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Tests Collected</th>
+                    <th>Collected By</th>
+                    <th>Time</th>
+                    <th>Barcode</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sample in collected_today %}
+                <tr>
+                    <td><strong>{{ sample.patient_name }}</strong></td>
+                    <td>
+                        <span class="badge badge-info" style="color:black ;font-weight:600;">
+                            {{ sample.test_type }}
+                        </span>
+                    </td>
+                    <td>{{ sample.collected_by }}</td>
+                    <td>{{ sample.collection_time }}</td>
+                    <td>
+                        <span style="font-family: monospace; background: var(--dark); color: white; padding: 2px 6px; border-radius: 4px;">
+                            {{ sample.barcode }}
+                        </span>
+                    </td> 
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color: var(--gray); text-align: center; padding: 20px;">No samples collected yet today</p>
+    {% endif %}
+</div>
+
+<!-- Quick Collection Stats -->
+<div class="grid-2" style="margin-top: 30px;">
+    <div class="card" style="background: linear-gradient(135deg, var(--info), var(--info-dark)); color: white;">
+        <h4 style="color: white; margin-bottom: 15px;">📊 Today's Collection Stats</h4>
+        <div class="grid-3" style="gap: 10px;">
+            <div style="text-align: center;">
+                <div style="font-size: 32px; font-weight: bold;">{{ collected_count }}</div>
+                <div style="font-size: 12px; opacity: 0.9;">Total Samples</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 32px; font-weight: bold;">{{ pending_count }}</div>
+                <div style="font-size: 12px; opacity: 0.9;">Pending</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 32px; font-weight: bold;">{{ avg_collection_time }}</div>
+                <div style="font-size: 12px; opacity: 0.9;">Avg Time (min)</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h4 style="color: var(--primary); margin-bottom: 15px;">📋 Quick Guide</h4>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 120px;">
+                <span style="font-size: 20px;">🩸</span>
+                <h5 style="margin: 5px 0;">Blood</h5>
+                <ul style="font-size: 12px; color: var(--gray); padding-left: 15px;">
+                    <li>EDTA tubes</li>
+                    <li>Invert 8-10x</li>
+                </ul>
+            </div>
+            <div style="flex: 1; min-width: 120px;">
+                <span style="font-size: 20px;">🏷️</span>
+                <h5 style="margin: 5px 0;">Labeling</h5>
+                <ul style="font-size: 12px; color: var(--gray); padding-left: 15px;">
+                    <li>ID + Date</li>
+                    <li>Your initials</li>
+                </ul>
+            </div>
+            <div style="flex: 1; min-width: 120px;">
+                <span style="font-size: 20px;">⚠️</span>
+                <h5 style="margin: 5px 0;">Quality</h5>
+                <ul style="font-size: 12px; color: var(--gray); padding-left: 15px;">
+                    <li>No hemolysis</li>
+                    <li>Proper volume</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Urgent Reminder -->
+{% if urgent_count > 0 %}
+<div class="alert alert-danger" style="margin-top: 30px; animation: pulse 2s infinite;">
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <span style="font-size: 32px;">🚨</span>
+        <div>
+            <strong>Urgent: {{ urgent_count }} STAT/Urgent patients waiting!</strong>
+            <p style="margin: 5px 0 0 0;">These patients require immediate attention.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh every 30 seconds
+    setTimeout(function() {
+        location.reload();
+    }, 30000);
+
+    // Highlight urgent cases
+    document.addEventListener('DOMContentLoaded', function() {
+        const urgentBadges = document.querySelectorAll('.badge-stat, .badge-urgent');
+        urgentBadges.forEach(badge => {
+            const row = badge.closest('tr');
+            if (row) {
+                row.style.backgroundColor = 'rgba(231, 76, 60, 0.05)';
+            }
+        });
+    });
+</script>
+
+<style>
+    @keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.8;
+            background-color: rgba(231, 76, 60, 0.2);
+        }
+        100% {
+            opacity: 1;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Lab Report View #{{ report_id }}{% endblock %}
+
+{% block content %}
+<div class="header" style="background: linear-gradient(135deg, var(--info), var(--info-dark));">
+    <div class="flex justify-between">
+        <div>
+            <h1>🔬 Lab Report View</h1>
+            <p>Report #{{ report_id }} | Patient: {{ patient_name }}</p>
+        </div>
+        <a href="/lab_reports" class="btn btn-secondary">← Back to Reports</a>
+    </div>
+</div>
+
+<!-- ML Disease Prediction Card (if available) -->
+{% if ml_prediction %}
+<div class="card" style="margin-top: 25px; border-left: 4px solid var(--accent); background: linear-gradient(135deg, #f0f9ff, white);">
+    <h3 style="color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 24px;">🤖</span> AI Disease Prediction
+    </h3>
+    
+    <div class="grid-2" style="gap: 20px;">
+        <div style="text-align: center; padding: 15px; background: white; border-radius: 8px;">
+            <div style="font-size: 48px; 
+                {% if ml_prediction.primary_risk_level in ['Critical', 'High'] %}color: var(--danger);
+                {% elif ml_prediction.primary_risk_level == 'Moderate' %}color: var(--warning);
+                {% else %}color: var(--success);{% endif %}">
+                🏥
+            </div>
+            <h4 style="margin: 10px 0;">{{ ml_prediction.primary_diagnosis }}</h4>
+            <div class="progress" style="height: 20px; margin: 10px 0;">
+                <div class="progress-bar" style="width: {{ ml_prediction.confidence * 100 }}%; 
+                    background: {% if ml_prediction.confidence > 0.7 %}var(--success){% elif ml_prediction.confidence > 0.4 %}var(--warning){% else %}var(--info){% endif %};">
+                    {{ "%.1f"|format(ml_prediction.confidence * 100) }}% Confidence
+                </div>
+            </div>
+            <p style="color: var(--gray); font-size: 13px;">Ensemble prediction combining multiple ML models</p>
+        </div>
+        <div>
+            <h5 style="color: var(--primary); margin-bottom: 10px;">Top Likely Conditions</h5>
+            <table style="width: 100%;">
+                <tbody>
+                    {% for pred in ml_prediction.top_predictions %}
+                    <tr>
+                        <td>{{ pred.disease }}</td>
+                        <td style="width: 60%;">
+                            <div class="progress" style="height: 15px;">
+                                <div class="progress-bar" style="width: {{ pred.probability * 100 }}%; 
+                                    background: {% if pred.probability > 0.5 %}var(--danger){% else %}var(--info){% endif %};">
+                                    {{ "%.0f"|format(pred.probability * 100) }}%
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <p style="font-size: 12px; color: var(--gray); margin-top: 10px;">
+        <i>This is an AI-generated prediction and should be reviewed by a qualified healthcare provider.</i>
+    </p>
+</div>
+{% endif %}
+
+<!-- Report Details -->
+<div class="card">
+    <h3>Report Details</h3>
+    <table>
+        <tr>
+            <td><strong>Risk Score:</strong></td>
+            <td>
+                {% if risk_score >= 70 %}
+                    <span class="badge badge-stat">{{ risk_score }} (Critical)</span>
+                {% elif risk_score >= 40 %}
+                    <span class="badge badge-urgent">{{ risk_score }} (High)</span>
+                {% else %}
+                    <span class="badge badge-normal">{{ risk_score }} (Moderate/Low)</span>
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Diagnosis Status:</strong></td>
+            <td>{{ diagnosis if diagnosis else 'Pending' }}</td>
+        </tr>
+        <tr>
+            <td><strong>Verification:</strong></td>
+            <td>
+                {% if verification_status == 'Verified' %}
+                    <span class="badge badge-success">Verified</span>
+                {% else %}
+                    <span class="badge badge-warning">Pending</span>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+</div>
+
+
+<!-- QR Code for Lab View -->
+<div class="card" style="background: linear-gradient(135deg, #f0f9ff, white);">
+    <div style="display: grid; grid-template-columns: auto 1fr; gap: 30px; align-items: center;">
+        <!-- QR Code -->
+        <div style="text-align: center;">
+            <h4 style="color: var(--primary); margin-bottom: 10px;">📱 Verification QR</h4>
+            {% if qr_path %}
+                <img src="{{ qr_path }}" alt="Report QR Code" 
+                     style="max-width: 150px; width: 100%; height: auto; border: 2px solid var(--light-gray); border-radius: 10px; padding: 5px; background: white;">
+                <p style="margin-top: 8px; font-size: 12px; color: var(--gray);">
+                    <span style="color: var(--success);">✓</span> Scan to verify
+                </p>
+            {% else %}
+                <div style="width: 150px; height: 150px; background: var(--light-gray); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 48px; color: var(--gray);">📱</span>
+                </div>
+                <p style="margin-top: 8px; font-size: 12px; color: var(--gray);">QR not available</p>
+            {% endif %}
+        </div>
+        
+        <!-- QR Info -->
+        <div>
+            <h4 style="color: var(--primary); margin-bottom: 10px;">🔐 Secure Verification</h4>
+            <p style="margin-bottom: 15px; color: var(--gray); font-size: 14px;">
+                Share this QR code with the patient. They can scan it with their phone camera 
+                to instantly verify the report authenticity.
+            </p>
+            
+            <div style="background: white; padding: 15px; border-radius: 8px;">
+                <p style="font-weight: 600; margin-bottom: 5px;">Report Hash:</p>
+                <code style="display: block; padding: 10px; background: var(--light-gray); border-radius: 5px; font-size: 12px; word-break: break-all;">
+                    {{ hash_value }}
+                </code>
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <a href="/verify_qr/{{ report_id }}" class="btn btn-sm btn-success" style="margin-right: 10px;">
+                    🔐 Test QR Verification
+                </a>
+                <a href="/verify_page" class="btn btn-sm btn-info">
+                    Manual Verify
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ===== END QR CODE SECTION ===== -->
+
+<!-- Test Results -->
+<div class="card">
+    <h3>Test Results</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Parameter</th>
+                <th>Value</th>
+                <th>Unit</th>
+                <th>Reference Range</th>
+                <th>Flag</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in test_results %}
+            <tr>
+                <td>{{ result[0] }}</td>
+                <td>
+                    {% if result[4] and ('Critical' in result[4] or 'Abnormal' in result[4]) %}
+                        <span style="color: var(--danger); font-weight: bold;">{{ result[1] }}</span>
+                    {% elif result[4] and ('High' in result[4] or 'Low' in result[4] or 'Elevated' in result[4]) %}
+                        <span style="color: var(--warning); font-weight: bold;">{{ result[1] }}</span>
+                    {% else %}
+                        <span style="color: var(--success);">{{ result[1] }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ result[2] if result[2] else '-' }}</td>
+                <td>{{ result[3] if result[3] else 'Standard' }}</td>
+                <td>
+                    {% if result[4] %}
+                        <span class="badge 
+                            {% if 'Critical' in result[4] %}badge-stat
+                            {% elif 'High' in result[4] or 'Low' in result[4] %}badge-urgent
+                            {% else %}badge-success{% endif %}">
+                            {{ result[4] }}
+                        </span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

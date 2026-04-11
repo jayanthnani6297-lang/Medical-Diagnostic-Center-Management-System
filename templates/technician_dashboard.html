@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Technician Dashboard{% endblock %}
+
+{% block content %}
+<div class="header" style="background: linear-gradient(135deg, var(--success), var(--success-dark));">
+    <div class="flex justify-between">
+        <div>
+            <h1>🔬 Lab Technician Dashboard</h1>
+            <p>Logged in as: <strong>{{ session['full_name'] }}</strong> (Technician)</p>
+        </div>
+        <a href="/logout" class="btn btn-danger">Logout</a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid-4" style="margin-bottom: 30px;">
+    <div class="card text-center">
+        <div style="font-size: 36px; color: var(--warning);">⏳</div>
+        <div style="font-size: 28px; font-weight: bold;">{{ processing_queue|length }}</div>
+        <div>Waiting</div>
+    </div>
+    <div class="card text-center">
+        <div style="font-size: 36px; color: var(--info);">⚙️</div>
+        <div style="font-size: 28px; font-weight: bold;">{{ in_progress|length }}</div>
+        <div>In Progress</div>
+    </div>
+    <div class="card text-center">
+        <div style="font-size: 36px; color: var(--success);">✅</div>
+        <div style="font-size: 28px; font-weight: bold;">{{ completed_today }}</div>
+        <div>Completed Today</div>
+    </div>
+    <div class="card text-center">
+        <div style="font-size: 36px; color: var(--accent);">📊</div>
+        <div style="font-size: 28px; font-weight: bold;">{{ test_counts|length }}</div>
+        <div>Test Types</div>
+    </div>
+</div>
+
+<!-- Processing Queue -->
+<div class="card">
+    <h3>⏳ Ready for Processing</h3>
+    
+    {% if processing_queue %}
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Sample ID</th>
+                    <th>Patient</th>
+                    <th>Test</th>
+                    <th>Priority</th>
+                    <th>Collected</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for test in processing_queue %}
+                <tr {% if test[3] == 'STAT' %}style="background-color: rgba(231, 76, 60, 0.1);"{% endif %}>
+                    <td><code>{{ test[4] }}</code></td>
+                    <td>{{ test[1] }}</td>
+                    <td>
+                        {% if test[2] == 'cbc' %}🩸 CBC
+                        {% elif test[2] == 'diabetes' %}💉 Diabetes
+                        {% elif test[2] == 'lipid' %}🫀 Lipid
+                        {% elif test[2] == 'lft' %}🧪 LFT
+                        {% elif test[2] == 'kft' %}💧 KFT
+                        {% else %}{{ test[2] }}{% endif %}
+                    </td>
+                    <td>
+                        {% if test[3] == 'STAT' %}
+                            <span class="badge badge-stat">STAT</span>
+                        {% elif test[3] == 'Urgent' %}
+                            <span class="badge badge-urgent">Urgent</span>
+                        {% else %}
+                            <span class="badge badge-normal">Normal</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ test[5] }}</td>
+                    <td>
+                        <a href="/enter_test/{{ test[0] }}" class="btn btn-primary btn-sm">
+                            Process
+                        </a>
+                        <form action="/simulate_machine/{{ test[0] }}" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-success btn-sm">
+                                Simulate
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info" style="text-align: center;">
+        <p>No tests waiting for processing</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- In Progress -->
+<div class="card" style="margin-top: 30px;">
+    <h3>⚙️ Currently Processing</h3>
+    
+    {% if in_progress %}
+    <table>
+        <thead>
+            <tr>
+                <th>Test ID</th>
+                <th>Patient</th>
+                <th>Test</th>
+                <th>Started</th>
+                <th>Barcode</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for test in in_progress %}
+            <tr>
+                <td>#{{ test[0] }}</td>
+                <td>{{ test[1] }}</td>
+                <td>{{ test[2] }}</td>
+                <td>{{ test[3] }}</td>
+                <td><code>{{ test[4] }}</code></td>
+                <td>
+                    <a href="/enter_test/{{ test[0] }}" class="btn btn-warning btn-sm">
+                        Continue
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--gray); text-align: center;">No tests in progress</p>
+    {% endif %}
+</div>
+{% endblock %}

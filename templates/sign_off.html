@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Electronic Signature{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>✍️ Electronic Signature</h1>
+</div>
+
+<div class="card">
+    <form method="POST" action="/sign_report/{{ report_id }}">
+        <div class="form-group">
+            <label>Report ID</label>
+            <input type="text" value="#{{ report_id }}" readonly>
+        </div>
+        
+        <div class="form-group">
+            <label>I, {{ session['full_name'] }}, confirm that I have reviewed and approved this report.</label>
+        </div>
+        
+        <div class="form-group">
+            <label>Electronic Signature</label>
+            <input type="text" name="signature" placeholder="Type your full name to sign" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Title/Role</label>
+            <input type="text" value="{{ session['role'] }}" readonly>
+        </div>
+        
+        <button type="submit" class="btn btn-success">Sign & Finalize</button>
+    </form>
+</div>
+{% endblock %}

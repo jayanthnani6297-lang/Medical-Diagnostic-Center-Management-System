@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Security Dashboard{% endblock %}
+
+{% block content %}
+<div class="header" style="background: linear-gradient(135deg, var(--primary), var(--danger-dark));">
+    <div class="flex justify-between">
+        <div>
+            <h1>🔒 Security Dashboard</h1>
+            <p>Monitor system security and blockchain verification</p>
+        </div>
+        <a href="/admin_dashboard" class="btn btn-secondary">← Back to Admin</a>
+    </div>
+</div>
+
+<div class="grid-4" style="margin-bottom: 30px;">
+    <div class="card text-center">
+        <div style="font-size: 36px; color: var(--danger);">⚠️</div>
+        <div style="font-size: 28px; font-weight: bold;">{{ tamper_count }}</div>
+        <div>Tamper Attempts</div>
+    </div>
+    <div class="card text-center">
+        <div style="font-size: 36px; color: var(--warning);">❌</div>
+        <div style="font-size: 28px; font-weight: bold;">{{ failed_verifications }}</div>
+        <div>Failed Verifications</div>
+    </div>
+    <div class="card text-center">
+        <div style="font-size: 36px; color: var(--info);">🔐</div>
+        <div style="font-size: 28px; font-weight: bold;">{{ tampered_reports }}</div>
+        <div>Tampered Reports</div>
+    </div>
+    <div class="card text-center">
+        <div style="font-size: 36px; color: var(--success);">🔗</div>
+        <div style="font-size: 28px; font-weight: bold;">{{ chain_length }}</div>
+        <div>Blockchain Height</div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 30px;">
+    <h3>🔑 Digital Signature System</h3>
+    <div style="background: var(--light-gray); padding: 20px; border-radius: 10px;">
+        <p><strong>Algorithm:</strong> RSA-2048 with SHA-256</p>
+        <p><strong>Public Key:</strong></p>
+        <div style="background: white; padding: 15px; font-family: monospace; font-size: 11px; overflow-x: auto;">
+            {{ public_key }}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>📋 Security Events</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Actor</th>
+                <th>Event</th>
+                <th>IP</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in security_events %}
+            <tr>
+                <td>{{ event[0] }}</td>
+                <td>{{ event[1] }}</td>
+                <td>{{ event[2] }}</td>
+                <td>{{ event[4] }}</td>
+                <td>
+                    {% if event[5] == 'ALERT' %}
+                        <span class="badge badge-stat">ALERT</span>
+                    {% elif event[5] == 'FAILED' %}
+                        <span class="badge badge-urgent">Failed</span>
+                    {% else %}
+                        <span class="badge badge-success">Success</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="grid-3" style="margin-top: 30px;">
+    <div class="card">
+        <h4>Verify Chain</h4>
+        <input type="number" id="chainId" placeholder="Report ID" class="form-control">
+        <button onclick="verifyChain()" class="btn btn-primary mt-2">Verify</button>
+    </div>
+    <div class="card">
+        <h4>Verify Signature</h4>
+        <input type="number" id="signId" placeholder="Report ID" class="form-control">
+        <button onclick="verifySignature()" class="btn btn-success mt-2">Verify</button>
+    </div>
+</div>
+
+<script>
+function verifyChain() {
+    const id = document.getElementById('chainId').value;
+    if (!id) return alert('Enter Report ID');
+    
+    fetch(`/security/verify_chain/${id}`)
+        .then(r => r.json())
+        .then(data => {
+            alert(`Chain valid: ${data.valid}\nLength: ${data.chain_length}`);
+        });
+}
+
+function verifySignature() {
+    const id = document.getElementById('signId').value;
+    if (!id) return alert('Enter Report ID');
+    
+    fetch(`/security/verify_signature/${id}`)
+        .then(r => r.json())
+        .then(data => {
+            alert(`Signature valid: ${data.signature_valid}`);
+        });
+}
+</script>
+{% endblock %}

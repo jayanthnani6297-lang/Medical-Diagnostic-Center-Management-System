@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Lab Automation Dashboard{% endblock %}
+
+{% block content %}
+<div class="header" style="background: linear-gradient(135deg, var(--success), var(--info));">
+    <div class="flex justify-between">
+        <div>
+            <h1 style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 40px;">🤖</span>
+                Automated Lab Processing
+            </h1>
+            <p style="color: var(--light-gray);">Zero-click laboratory automation</p>
+        </div>
+        <div>
+            <span class="badge badge-success" style="font-size: 16px; padding: 8px 15px;">
+                ⚡ Auto Mode ACTIVE
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid-4" style="margin-bottom: 30px;">
+    <div class="card text-center" style="border-bottom: 3px solid var(--success);">
+        <div style="font-size: 36px; color: var(--success);">⚡</div>
+        <div style="font-size: 28px; font-weight: bold;">{{ auto_processed }}</div>
+        <div class="text-gray">Auto-Processed Today</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--info);">
+        <div style="font-size: 36px; color: var(--info);">🔐</div>
+        <div style="font-size: 28px; font-weight: bold;">{{ auto_verified }}</div>
+        <div class="text-gray">Auto-Verified</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--warning);">
+        <div style="font-size: 36px; color: var(--warning);">📊</div>
+        <div style="font-size: 28px; font-weight: bold;">{{ reports_generated }}</div>
+        <div class="text-gray">Auto-Reports</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--accent);">
+        <div style="font-size: 36px; color: var(--accent);">📱</div>
+        <div style="font-size: 28px; font-weight: bold;">{{ notifications_sent }}</div>
+        <div class="text-gray">Patient Alerts</div>
+    </div>
+</div>
+
+<!-- Machine Status -->
+<div class="card" style="margin-bottom: 30px;">
+    <h3 style="color: var(--primary); margin-bottom: 20px;">🔧 Laboratory Equipment Status</h3>
+    
+    <div class="grid-2" style="gap: 20px;">
+        <div>
+            <h4>Hematology Analyzer</h4>
+            <div class="progress" style="height: 20px;">
+                <div class="progress-bar progress-bar-success" style="width: 75%;">75%</div>
+            </div>
+            <p>Processing: CBC-12345, CBC-12346</p>
+        </div>
+        
+        <div>
+            <h4>Chemistry Analyzer</h4>
+            <div class="progress" style="height: 20px;">
+                <div class="progress-bar progress-bar-info" style="width: 45%;">45%</div>
+            </div>
+            <p>Processing: LIPID-7890</p>
+        </div>
+        
+        <div>
+            <h4>Immunology System</h4>
+            <div class="progress" style="height: 20px;">
+                <div class="progress-bar progress-bar-warning" style="width: 30%;">30%</div>
+            </div>
+            <p>Processing: DIAB-5555</p>
+        </div>
+        
+        <div>
+            <h4>Coagulation Timer</h4>
+            <div class="progress" style="height: 20px;">
+                <div class="progress-bar progress-bar-danger" style="width: 15%;">15%</div>
+            </div>
+            <p>Idle</p>
+        </div>
+    </div>
+</div>
+
+<!-- Live Processing Queue -->
+<div class="card" style="margin-bottom: 30px;">
+    <h3 style="color: var(--primary); margin-bottom: 20px;">⏳ Real-time Processing Queue</h3>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Test ID</th>
+                <th>Patient</th>
+                <th>Test Type</th>
+                <th>Status</th>
+                <th>Auto-Process</th>
+                <th>ETA</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for test in queue %}
+            <tr>
+                <td>#{{ test.id }}</td>
+                <td>{{ test.patient }}</td>
+                <td>{{ test.type }}</td>
+                <td>
+                    <span class="badge badge-{{ test.status_color }}">{{ test.status }}</span>
+                </td>
+                <td>
+                    {% if test.auto %}
+                        <span class="badge badge-success">Auto</span>
+                    {% else %}
+                        <span class="badge badge-warning">Manual</span>
+                    {% endif %}
+                </td>
+                <td>{{ test.eta }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Patient Notifications -->
+<div class="card">
+    <h3 style="color: var(--primary); margin-bottom: 20px;">📱 Recent Patient Notifications</h3>
+    
+    <div style="max-height: 300px; overflow-y: auto;">
+        {% for notification in notifications %}
+        <div style="padding: 10px; border-bottom: 1px solid var(--light-gray); display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">📧</span>
+            <div style="flex: 1;">
+                <strong>{{ notification.patient }}</strong>
+                <div style="font-size: 12px; color: var(--gray);">Report #{{ notification.report_id }}</div>
+            </div>
+            <span style="color: var(--gray); font-size: 12px;">{{ notification.time }}</span>
+            <span class="badge badge-success">Sent</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

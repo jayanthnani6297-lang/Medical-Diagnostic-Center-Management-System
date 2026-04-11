@@ -1,0 +1,922 @@
+{% extends "base.html" %}
+
+{% block title %}Reception Dashboard - Medical Laboratory System{% endblock %}
+
+{% block content %}
+<div class="header">
+    <div class="flex justify-between">
+        <div>
+            <h1>🖥️ Receptionist Panel</h1>
+            <p style="color: var(--light-gray);">
+                Logged in as: <strong>{{ session['username'] }}</strong>
+                <span class="badge badge-info" style="margin-left: 10px;">{{ session['role'] }}</span>
+            </p>
+        </div>
+        <a href="/logout" class="btn btn-danger">🚪 Logout</a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid-3" style="margin-bottom: 30px;">
+    <div class="card text-center" style="border-bottom: 3px solid var(--accent);">
+        <div style="font-size: 36px; color: var(--accent); margin-bottom: 10px;">👤</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">{{ patients|length }}</div>
+        <div class="text-gray">Total Patients</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--success);">
+        <div style="font-size: 36px; color: var(--success); margin-bottom: 10px;">🔬</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">{{ today_registrations }}</div>
+        <div class="text-gray">Registered Today</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--warning);">
+        <div style="font-size: 36px; color: var(--warning); margin-bottom: 10px;">⏳</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">{{ pending_tests }}</div>
+        <div class="text-gray">Pending Tests</div>
+    </div>
+</div>
+
+<!-- Quick Actions and Search Section -->
+<div class="grid-2" style="margin-top: 30px; margin-bottom: 30px;">
+    <!-- Quick Actions -->
+    <div class="card">
+        <h3 style="color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid var(--light-gray); padding-bottom: 10px;">
+            ⚡ Quick Actions
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <a href="/patients" class="btn btn-info" style="text-align: center; padding: 12px;">
+                👥 View All Patients
+            </a>
+            <a href="/onboard" class="btn btn-success" style="text-align: center; padding: 12px;">
+                ➕ Register New Patient
+            </a>
+        </div>
+    </div>
+    
+    <!-- Patient Search Card -->
+    <div class="card">
+        <h3 style="color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid var(--light-gray); padding-bottom: 10px;">
+            🔍 Patient Search
+        </h3>
+        <div id="searchSection">
+            <input type="text" id="searchInput" placeholder="Enter patient name (minimum 2 characters)" 
+                   style="width: 100%; padding: 12px; border: 2px solid var(--light-gray); border-radius: 5px; margin-bottom: 10px; font-size: 14px;">
+            <div id="searchResults" style="max-height: 300px; overflow-y: auto; margin-top: 10px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Grid - Registration Form -->
+<div class="grid-2" style="gap: 30px;">
+    <!-- Registration Form -->
+    <div class="card">
+        <h3 style="color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid var(--light-gray); padding-bottom: 10px;">
+            📝 Register New Patient
+        </h3>
+        
+        <form method="POST" action="/onboard_submit" id="registrationForm">
+            <div class="form-group">
+                <label style="color: var(--primary);">
+                    <span style="color: var(--accent); margin-right: 5px;">👤</span> Full Name
+                </label>
+                <input type="text" name="name" id="patientName" required placeholder="Enter patient's full name">
+            </div>
+
+            <div class="form-group">
+                <label style="color: var(--primary);">
+                    <span style="color: var(--accent); margin-right: 5px;">📅</span> Age
+                </label>
+                <input type="number" name="age" id="patientAge" required placeholder="Enter age" min="0" max="150">
+            </div>
+
+            <div class="form-group">
+                <label style="color: var(--primary);">
+                    <span style="color: var(--accent); margin-right: 5px;">⚥</span> Gender
+                </label>
+                <select name="gender" id="patientGender" required>
+                    <option value="" disabled selected>Select gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label style="color: var(--primary);">
+                    <span style="color: var(--accent); margin-right: 5px;">📞</span> Contact Number
+                </label>
+                <input type="text" name="contact" id="patientContact" placeholder="Enter contact number">
+            </div>
+
+            <div class="form-group">
+                <label style="color: var(--primary);">
+                    <span style="color: var(--accent); margin-right: 5px;">📧</span> Email Address
+                </label>
+                <input type="email" name="email" id="patientEmail" placeholder="Enter email address (optional)">
+            </div>
+
+            <!-- Priority Selection -->
+            <div class="priority-group" style="margin: 20px 0;">
+                <label style="color: var(--primary); font-weight: 600;">⚡ Priority</label>
+                <div style="display: flex; gap: 15px; margin-top: 10px;">
+                    <label style="flex: 1; text-align: center;">
+                        <input type="radio" name="priority" value="Normal" checked style="width: auto;">
+                        <span style="display: block; padding: 8px; background: var(--light-gray); border-radius: 5px;">🟢 Normal</span>
+                    </label>
+                    <label style="flex: 1; text-align: center;">
+                        <input type="radio" name="priority" value="Urgent" style="width: auto;">
+                        <span style="display: block; padding: 8px; background: var(--light-gray); border-radius: 5px;">🟡 Urgent</span>
+                    </label>
+                    <label style="flex: 1; text-align: center;">
+                        <input type="radio" name="priority" value="STAT" style="width: auto;">
+                        <span style="display: block; padding: 8px; background: var(--light-gray); border-radius: 5px;">🔴 STAT</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Test Categories Accordion - ALL 40+ TESTS -->
+            <div class="form-group">
+                <label style="color: var(--primary); margin-bottom: 10px; display: block;">
+                    <span style="color: var(--accent); margin-right: 5px;">🔬</span> Select Tests
+                </label>
+                
+                <!-- Test Categories Accordion -->
+                <div style="border: 1px solid var(--light-gray); border-radius: 8px; overflow: hidden; margin-bottom: 15px;">
+                    <!-- Info Note -->
+                    <div style="background: #fff3cd; padding: 8px 12px; border-bottom: 1px solid #ffeeba;">
+                        <p style="margin: 0; color: #856404; font-size: 12px;">
+                            <strong>ℹ️ Note:</strong> Panel tests (CBC, LFT, KFT) include multiple parameters at a discounted rate.
+                            Individual tests are also available for specific follow-ups. Selecting both panel and individual tests will result in duplicate charges.
+                        </p>
+                    </div>
+                    
+                    <!-- Hematology -->
+                    <div style="border-bottom: 1px solid var(--light-gray);">
+                        <div onclick="toggleCategory('hematology')" style="background: var(--light-gray); padding: 12px; cursor: pointer; display: flex; justify-content: space-between;">
+                            <span><strong>🩸 Hematology</strong></span>
+                            <span id="hematology-icon">▼</span>
+                        </div>
+                        <div id="hematology-tests" style="padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="cbc" class="test-checkbox"> CBC (₹500)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="hemoglobin" class="test-checkbox"> Hemoglobin (₹150)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="wbc_count" class="test-checkbox"> WBC Count (₹200)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="platelet_count" class="test-checkbox"> Platelet Count (₹200)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="esr" class="test-checkbox"> ESR (₹180)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="peripheral_smear" class="test-checkbox"> Peripheral Smear (₹300)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="blood_group" class="test-checkbox"> Blood Group (₹150)</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Diabetes -->
+                    <div style="border-bottom: 1px solid var(--light-gray);">
+                        <div onclick="toggleCategory('diabetes')" style="background: var(--light-gray); padding: 12px; cursor: pointer; display: flex; justify-content: space-between;">
+                            <span><strong>🍬 Diabetes</strong></span>
+                            <span id="diabetes-icon">▼</span>
+                        </div>
+                        <div id="diabetes-tests" style="padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="fasting_glucose" class="test-checkbox"> Fasting Glucose (₹150)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="postprandial_glucose" class="test-checkbox"> Postprandial Glucose (₹150)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="random_glucose" class="test-checkbox"> Random Glucose (₹150)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="hba1c" class="test-checkbox"> HbA1c (₹400)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="gtt" class="test-checkbox"> GTT (₹600)</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Lipid Profile -->
+                    <div style="border-bottom: 1px solid var(--light-gray);">
+                        <div onclick="toggleCategory('lipid')" style="background: var(--light-gray); padding: 12px; cursor: pointer; display: flex; justify-content: space-between;">
+                            <span><strong>❤️ Lipid Profile</strong></span>
+                            <span id="lipid-icon">▼</span>
+                        </div>
+                        <div id="lipid-tests" style="padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="lipid_profile" class="test-checkbox"> Lipid Profile (₹800)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="total_cholesterol" class="test-checkbox"> Total Cholesterol (₹200)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="hdl" class="test-checkbox"> HDL (₹250)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="ldl" class="test-checkbox"> LDL (₹250)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="triglycerides" class="test-checkbox"> Triglycerides (₹250)</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Liver Function -->
+                    <div style="border-bottom: 1px solid var(--light-gray);">
+                        <div onclick="toggleCategory('liver')" style="background: var(--light-gray); padding: 12px; cursor: pointer; display: flex; justify-content: space-between;">
+                            <span><strong>🧪 Liver Function (LFT)</strong></span>
+                            <span id="liver-icon">▼</span>
+                        </div>
+                        <div id="liver-tests" style="padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="lft" class="test-checkbox"> LFT (₹1000)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="sgpt_alt" class="test-checkbox"> SGPT/ALT (₹200)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="sgot_ast" class="test-checkbox"> SGOT/AST (₹200)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="alkaline_phosphatase" class="test-checkbox"> Alkaline Phos. (₹200)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="total_bilirubin" class="test-checkbox"> Total Bilirubin (₹180)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="direct_bilirubin" class="test-checkbox"> Direct Bilirubin (₹180)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="total_protein" class="test-checkbox"> Total Protein (₹150)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="albumin" class="test-checkbox"> Albumin (₹150)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="globulin" class="test-checkbox"> Globulin (₹150)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="ag_ratio" class="test-checkbox"> A/G Ratio (₹100)</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Kidney Function -->
+                    <div style="border-bottom: 1px solid var(--light-gray);">
+                        <div onclick="toggleCategory('kidney')" style="background: var(--light-gray); padding: 12px; cursor: pointer; display: flex; justify-content: space-between;">
+                            <span><strong>💧 Kidney Function (KFT)</strong></span>
+                            <span id="kidney-icon">▼</span>
+                        </div>
+                        <div id="kidney-tests" style="padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="kft" class="test-checkbox"> KFT (₹900)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="blood_urea" class="test-checkbox"> Blood Urea (₹180)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="serum_creatinine" class="test-checkbox"> Serum Creatinine (₹180)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="uric_acid" class="test-checkbox"> Uric Acid (₹200)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="sodium" class="test-checkbox"> Sodium (₹250)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="potassium" class="test-checkbox"> Potassium (₹250)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="chloride" class="test-checkbox"> Chloride (₹200)</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Thyroid -->
+                    <div style="border-bottom: 1px solid var(--light-gray);">
+                        <div onclick="toggleCategory('thyroid')" style="background: var(--light-gray); padding: 12px; cursor: pointer; display: flex; justify-content: space-between;">
+                            <span><strong>🏥 Thyroid</strong></span>
+                            <span id="thyroid-icon">▼</span>
+                        </div>
+                        <div id="thyroid-tests" style="padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="tsh" class="test-checkbox"> TSH (₹400)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="t3" class="test-checkbox"> T3 (₹400)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="t4" class="test-checkbox"> T4 (₹400)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="ft3" class="test-checkbox"> Free T3 (₹450)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="ft4" class="test-checkbox"> Free T4 (₹450)</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Cardiac -->
+                    <div style="border-bottom: 1px solid var(--light-gray);">
+                        <div onclick="toggleCategory('cardiac')" style="background: var(--light-gray); padding: 12px; cursor: pointer; display: flex; justify-content: space-between;">
+                            <span><strong>❤️ Cardiac</strong></span>
+                            <span id="cardiac-icon">▼</span>
+                        </div>
+                        <div id="cardiac-tests" style="padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="troponin_i" class="test-checkbox"> Troponin I (₹1200)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="troponin_t" class="test-checkbox"> Troponin T (₹1200)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="ck_mb" class="test-checkbox"> CK-MB (₹800)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="ck_total" class="test-checkbox"> CK Total (₹600)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="ldh" class="test-checkbox"> LDH (₹500)</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Vitamins -->
+                    <div style="border-bottom: 1px solid var(--light-gray);">
+                        <div onclick="toggleCategory('vitamins')" style="background: var(--light-gray); padding: 12px; cursor: pointer; display: flex; justify-content: space-between;">
+                            <span><strong>💊 Vitamins</strong></span>
+                            <span id="vitamins-icon">▼</span>
+                        </div>
+                        <div id="vitamins-tests" style="padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="vitamin_d" class="test-checkbox"> Vitamin D (₹1500)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="vitamin_b12" class="test-checkbox"> Vitamin B12 (₹1200)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="ferritin" class="test-checkbox"> Ferritin (₹600)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="iron_studies" class="test-checkbox"> Iron Studies (₹800)</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Infectious Diseases -->
+                    <div style="border-bottom: 1px solid var(--light-gray);">
+                        <div onclick="toggleCategory('infectious')" style="background: var(--light-gray); padding: 12px; cursor: pointer; display: flex; justify-content: space-between;">
+                            <span><strong>🦠 Infectious Diseases</strong></span>
+                            <span id="infectious-icon">▼</span>
+                        </div>
+                        <div id="infectious-tests" style="padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="crp" class="test-checkbox"> CRP (₹500)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="rheumatoid_factor" class="test-checkbox"> Rheumatoid Factor (₹600)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="widal" class="test-checkbox"> Widal (₹500)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="dengue_ns1" class="test-checkbox"> Dengue NS1 (₹1200)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="dengue_igg_igm" class="test-checkbox"> Dengue IgG/IgM (₹1500)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="malaria" class="test-checkbox"> Malaria (₹600)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="typhoid" class="test-checkbox"> Typhoid (₹700)</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Urine -->
+                    <div style="border-bottom: 1px solid var(--light-gray);">
+                        <div onclick="toggleCategory('urine')" style="background: var(--light-gray); padding: 12px; cursor: pointer; display: flex; justify-content: space-between;">
+                            <span><strong>💛 Urine</strong></span>
+                            <span id="urine-icon">▼</span>
+                        </div>
+                        <div id="urine-tests" style="padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="urine_routine" class="test-checkbox"> Urine Routine (₹300)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="urine_culture" class="test-checkbox"> Urine Culture (₹800)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="microalbumin" class="test-checkbox"> Microalbumin (₹600)</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Microbiology -->
+                    <div style="border-bottom: 1px solid var(--light-gray);">
+                        <div onclick="toggleCategory('microbiology')" style="background: var(--light-gray); padding: 12px; cursor: pointer; display: flex; justify-content: space-between;">
+                            <span><strong>🧫 Microbiology</strong></span>
+                            <span id="microbiology-icon">▼</span>
+                        </div>
+                        <div id="microbiology-tests" style="padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="blood_culture" class="test-checkbox"> Blood Culture (₹1000)</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Basic Tests -->
+                    <div style="border-bottom: 1px solid var(--light-gray);">
+                        <div onclick="toggleCategory('basic')" style="background: var(--light-gray); padding: 12px; cursor: pointer; display: flex; justify-content: space-between;">
+                            <span><strong>⚕️ Basic Tests</strong></span>
+                            <span id="basic-icon">▼</span>
+                        </div>
+                        <div id="basic-tests" style="padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="bp" class="test-checkbox"> BP (₹200)</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" name="tests" value="bmi" class="test-checkbox"> BMI (₹300)</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <p id="testError" style="color: var(--danger); font-size: 12px; margin-top: 5px; display: none;">Please select at least one test</p>
+            </div>
+
+            <!-- Payment Information Section -->
+            <div style="background: var(--light-gray); padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <h4 style="color: var(--primary); margin-bottom: 15px;">💰 Payment Information</h4>
+                
+                <!-- Total Amount Display -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: white; border-radius: 5px;">
+                    <span style="font-weight: bold; color: var(--primary);">Total Amount:</span>
+                    <span style="font-size: 24px; font-weight: bold; color: var(--success);" id="totalAmount">₹0</span>
+                </div>
+                
+                <!-- Selected Tests List -->
+                <div style="margin-top: 15px; max-height: 200px; overflow-y: auto; border: 1px solid var(--light-gray); border-radius: 5px; padding: 10px;">
+                    <h5 style="color: var(--primary); margin-bottom: 10px;">📋 Selected Tests:</h5>
+                    <div id="selectedTestsList">
+                        <p style="color: var(--gray); text-align: center;">No tests selected</p>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label style="color: var(--primary);">
+                        <span style="color: var(--accent); margin-right: 5px;">💳</span> Payment Mode
+                    </label>
+                    <select name="payment_mode" id="paymentMode" class="form-control" required>
+                        <option value="" disabled selected>Select payment mode</option>
+                        <option value="cash">💵 Cash</option>
+                        <option value="card">💳 Card</option>
+                        <option value="upi">📱 UPI</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label style="color: var(--primary);">
+                        <span style="color: var(--accent); margin-right: 5px;">💵</span> Amount Paid
+                    </label>
+                    <input type="number" name="amount_paid" id="amount" class="form-control" value="0" step="10" min="0" required 
+                           title="Amount is auto-calculated based on selected tests"
+                           style="background-color: #f0f0f0; cursor: not-allowed; color: var(--primary); font-weight: 600;">
+                    <small style="color: var(--gray); display: block; margin-top: 5px;">
+                        ⚡ Amount is automatically set to total. To modify, please adjust test selection.
+                    </small>
+                </div>
+
+                <!-- Balance Display -->
+                <div id="balanceSection" style="display: block; margin-top: 10px; padding: 10px; background: white; border-radius: 5px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--gray);">Balance:</span>
+                        <span style="font-weight: bold; color: var(--success);" id="balanceAmount">₹0</span>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px;" id="submitBtn">
+                <span style="margin-right: 5px;">➕</span> Register Patient
+            </button>
+        </form>
+    </div>
+
+    <!-- Today's Summary Card -->
+    <div class="card">
+        <h3 style="color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid var(--light-gray); padding-bottom: 10px;">
+            📊 Today's Summary
+        </h3>
+        
+        <div style="padding: 15px; background: var(--light-gray); border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <span style="color: var(--gray);">New Registrations:</span>
+                <span style="font-weight: bold; color: var(--success); font-size: 18px;">{{ today_registrations }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <span style="color: var(--gray);">Tests Scheduled:</span>
+                <span style="font-weight: bold; color: var(--warning); font-size: 18px;">{{ scheduled_tests }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <span style="color: var(--gray);">Total Collection:</span>
+                <span style="font-weight: bold; color: var(--success); font-size: 18px;">₹{{ today_collection }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--gray);">Reports Ready:</span>
+                <span style="font-weight: bold; color: var(--info); font-size: 18px;">{{ completed_reports }}</span>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+            <div style="text-align: center; padding: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-dark)); border-radius: 8px; color: white;">
+                <div style="font-size: 20px;">⏱️</div>
+                <div style="font-size: 12px;">Avg. Processing</div>
+                <div style="font-weight: bold;">{{ avg_processing_time }} min</div>
+            </div>
+            <div style="text-align: center; padding: 10px; background: linear-gradient(135deg, var(--success), var(--success-dark)); border-radius: 8px; color: white;">
+                <div style="font-size: 20px;">✓</div>
+                <div style="font-size: 12px;">Completion Rate</div>
+                <div style="font-weight: bold;">{{ completion_rate }}%</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Registered Patients Table -->
+<div class="card" style="margin-top: 30px;">
+    <div class="flex justify-between" style="margin-bottom: 20px;">
+        <h3 style="color: var(--primary);">📋 Registered Patients</h3>
+        <span class="badge badge-info">{{ patients|length }} Total</span>
+    </div>
+    
+    {% if patients %}
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Patient Name</th>
+                    <th>Age</th>
+                    <th>Gender</th>
+                    <th>Contact</th>
+                    <th>Registration Date</th>
+                    <th>Payment</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients %}
+                <tr>
+                    <td><strong>#{{ patient[0] }}</strong></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-weight: 600; color: var(--primary);">{{ patient[1] }}</span>
+                        </div>
+                    </td>
+                    <td>{{ patient[2] }}</td>
+                    <td>
+                        {% if patient[3] == 'Male' %}
+                            <span class="badge badge-info">👨 Male</span>
+                        {% elif patient[3] == 'Female' %}
+                            <span class="badge badge-success">👩 Female</span>
+                        {% else %}
+                            <span class="badge badge-secondary">{{ patient[3] }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ patient[4] if patient[4] else 'N/A' }}</td>
+                    <td style="color: var(--gray);">{{ patient[5] if patient[5] else 'Today' }}</td>
+                    <td>
+                        {% if patient[6] and patient[7] %}
+                            <span class="badge badge-success">₹{{ patient[7] }}</span>
+                            <small class="text-gray">{{ patient[6] }}</small>
+                        {% else %}
+                            <span class="badge badge-warning">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 5px;">
+                            <a href="/patient/{{ patient[0] }}" class="btn btn-info btn-sm">View</a>
+                            <a href="/order_test/{{ patient[0] }}" class="btn btn-primary btn-sm">Order Test</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info" style="text-align: center; padding: 40px;">
+        <div style="font-size: 48px; margin-bottom: 20px;">👥</div>
+        <h4 style="color: var(--info); margin-bottom: 10px;">No Patients Registered</h4>
+        <p style="color: var(--gray);">Use the registration form to add new patients.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Recent Activity -->
+<div class="card" style="margin-top: 30px;">
+    <h3 style="color: var(--primary); margin-bottom: 20px;">🕒 Recent Registrations</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Patient</th>
+                <th>Tests Ordered</th>
+                <th>Status</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for activity in recent_activities %}
+            <tr>
+                <td style="color: var(--gray);">{{ activity.time }}</td>
+                <td><strong>{{ activity.patient_name }}</strong></td>
+                <td>
+                    {% for test in activity.tests %}
+                        <span class="badge badge-info" style="margin-right: 3px;">{{ test }}</span>
+                    {% endfor %}
+                </td>
+                <td>
+                    <span class="badge badge-{{ activity.status_color }}">
+                        {{ activity.status }}
+                    </span>
+                </td>
+                <td>
+                    {% if activity.amount and activity.amount > 0 %}
+                        <span class="badge badge-success">₹{{ "%.2f"|format(activity.amount) }}</span>
+                    {% else %}
+                        <span class="badge badge-secondary">Pending</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: var(--gray); padding: 20px;">
+                    No recent activity
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Hidden data element for JavaScript -->
+<div id="patients-data" style="display: none;">{{ patients|tojson }}</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh every 30 seconds
+    setTimeout(function() {
+        location.reload();
+    }, 30000);
+
+    // ===========================================
+    // TEST PRICES - COMPLETE (including urine)
+    // ===========================================
+    const testPrices = {
+        // Hematology
+        'cbc': 500, 'hemoglobin': 150, 'wbc_count': 200, 'platelet_count': 200,
+        'esr': 180, 'peripheral_smear': 300, 'blood_group': 150,
+        
+        // Diabetes
+        'fasting_glucose': 150, 'postprandial_glucose': 150, 'random_glucose': 150,
+        'hba1c': 400, 'gtt': 600,
+        
+        // Lipid Profile
+        'lipid_profile': 800, 'total_cholesterol': 200, 'hdl': 250,
+        'ldl': 250, 'triglycerides': 250,
+        
+        // Liver Function - COMPLETE
+        'lft': 1000, 'sgpt_alt': 200, 'sgot_ast': 200, 'alkaline_phosphatase': 200,
+        'total_bilirubin': 180, 'direct_bilirubin': 180, 'total_protein': 150,
+        'albumin': 150, 'globulin': 150, 'ag_ratio': 100,
+        
+        // Kidney Function - COMPLETE
+        'kft': 900, 'blood_urea': 180, 'serum_creatinine': 180, 'uric_acid': 200,
+        'sodium': 250, 'potassium': 250, 'chloride': 200,
+        
+        // Thyroid - COMPLETE
+        'tsh': 400, 't3': 400, 't4': 400, 'ft3': 450, 'ft4': 450,
+        
+        // Cardiac - COMPLETE
+        'troponin_i': 1200, 'troponin_t': 1200, 'ck_mb': 800,
+        'ck_total': 600, 'ldh': 500,
+        
+        // Vitamins - COMPLETE
+        'vitamin_d': 1500, 'vitamin_b12': 1200, 'ferritin': 600,
+        'iron_studies': 800,
+        
+        // Infectious Diseases - COMPLETE
+        'crp': 500, 'rheumatoid_factor': 600, 'widal': 500,
+        'dengue_ns1': 1200, 'dengue_igg_igm': 1500, 'malaria': 600,
+        'typhoid': 700,
+        
+        // Urine - ENSURE THESE ARE PRESENT
+        'urine_routine': 300,
+        'urine_culture': 800,
+        'microalbumin': 600,
+        
+        // Microbiology
+        'blood_culture': 1000,
+        
+        // Basic
+        'bp': 200, 'bmi': 300
+    };
+
+    // ===========================================
+    // PANEL DEFINITIONS (for warnings only)
+    // ===========================================
+    const panelDefinitions = {
+        'cbc': {
+            name: 'Complete Blood Count',
+            components: ['hemoglobin', 'wbc_count', 'platelet_count', 'hematocrit', 'mcv', 'mch', 'mchc']
+        },
+        'lipid_profile': {
+            name: 'Lipid Profile',
+            components: ['total_cholesterol', 'hdl', 'ldl', 'vldl', 'triglycerides']
+        },
+        'lft': {
+            name: 'Liver Function Test',
+            components: ['sgpt_alt', 'sgot_ast', 'alkaline_phosphatase', 'total_bilirubin', 
+                         'direct_bilirubin', 'total_protein', 'albumin', 'globulin', 'ag_ratio']
+        },
+        'kft': {
+            name: 'Kidney Function Test',
+            components: ['blood_urea', 'serum_creatinine', 'uric_acid', 'sodium', 'potassium', 'chloride']
+        }
+    };
+
+    // ===========================================
+    // DUPLICATE WARNING (no automatic changes)
+    // ===========================================
+    function checkForDuplicates() {
+        const checkboxes = document.querySelectorAll('.test-checkbox:checked');
+        const selectedValues = Array.from(checkboxes).map(cb => cb.value);
+        
+        for (const [panel, def] of Object.entries(panelDefinitions)) {
+            if (selectedValues.includes(panel)) {
+                const hasComponents = def.components.some(comp => selectedValues.includes(comp));
+                if (hasComponents) {
+                    alert(`⚠️ Warning: You have selected the ${def.name} panel and some of its individual components. This may result in duplicate charges. Please review your selections.`);
+                }
+            }
+        }
+    }
+
+    // ===========================================
+    // CATEGORY TOGGLE (unchanged)
+    // ===========================================
+    function toggleCategory(category) {
+        const testsDiv = document.getElementById(category + '-tests');
+        const icon = document.getElementById(category + '-icon');
+        if (!testsDiv || !icon) return;
+        if (testsDiv.style.display === 'none' || testsDiv.style.display === '') {
+            testsDiv.style.display = 'grid';
+            icon.textContent = '▼';
+        } else {
+            testsDiv.style.display = 'none';
+            icon.textContent = '▶';
+        }
+    }
+
+    // ===========================================
+    // UPDATE SELECTED TESTS LIST (simplified)
+    // ===========================================
+    function updateSelectedTestsList() {
+        const checkboxes = document.querySelectorAll('.test-checkbox:checked');
+        const listDiv = document.getElementById('selectedTestsList');
+        if (!listDiv) return;
+        
+        let html = '';
+        let total = 0;
+        
+        if (checkboxes.length === 0) {
+            html = '<p style="color: var(--gray); text-align: center;">No tests selected</p>';
+        } else {
+            checkboxes.forEach(cb => {
+                const label = cb.closest('label');
+                // Get clean display name (remove price in parentheses)
+                let displayName = label ? label.textContent.trim() : cb.value;
+                displayName = displayName.replace(/\s*\([^)]*\)\s*$/, '').trim();
+                const price = testPrices[cb.value] || 0;
+                total += price;
+                
+                html += `<div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; font-size: 13px;">
+                            <span>${displayName}</span>
+                            <span style="font-weight: bold; color: var(--success);">₹${price}</span>
+                        </div>`;
+            });
+            
+            html += `<div style="display: flex; justify-content: space-between; padding: 8px 0; margin-top: 5px; font-weight: bold; border-top: 2px solid var(--light-gray);">
+                        <span>TOTAL (${checkboxes.length} tests):</span>
+                        <span style="color: var(--accent); font-size: 18px;">₹${total}</span>
+                    </div>`;
+        }
+        
+        listDiv.innerHTML = html;
+    }
+
+    // ===========================================
+    // CALCULATE TOTAL (with console logging)
+    // ===========================================
+    function calculateTotal() {
+        const checkboxes = document.querySelectorAll('.test-checkbox:checked');
+        let total = 0;
+        
+        console.clear();
+        console.log('=== SELECTED TESTS ===');
+        
+        checkboxes.forEach(cb => {
+            const testValue = cb.value;
+            const price = testPrices[testValue] || 0;
+            total += price;
+            
+            const label = cb.closest('label');
+            const displayName = label ? label.textContent.trim() : testValue;
+            console.log(`${displayName} (${testValue}): ₹${price}`);
+        });
+        
+        console.log('TOTAL:', total);
+        
+        document.getElementById('totalAmount').textContent = '₹' + total;
+        
+        const amountField = document.getElementById('amount');
+        if (amountField) amountField.value = total;
+        
+        const balanceElement = document.getElementById('balanceAmount');
+        if (balanceElement) {
+            balanceElement.textContent = '₹0';
+            balanceElement.style.color = 'var(--success)';
+        }
+        
+        updateSelectedTestsList();
+        return total;
+    }
+
+    // ===========================================
+    // FORM PERSISTENCE
+    // ===========================================
+    let updatingFromCode = false;
+
+    function saveFormData() {
+        const checkboxes = document.querySelectorAll('.test-checkbox');
+        const formData = {
+            name: document.getElementById('patientName').value,
+            age: document.getElementById('patientAge').value,
+            gender: document.getElementById('patientGender').value,
+            contact: document.getElementById('patientContact').value,
+            email: document.getElementById('patientEmail').value,
+            paymentMode: document.getElementById('paymentMode').value,
+            priority: document.querySelector('input[name="priority"]:checked')?.value || 'Normal',
+            tests: Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value)
+        };
+        localStorage.setItem('receptionFormData', JSON.stringify(formData));
+    }
+
+    function loadFormData() {
+        const savedData = localStorage.getItem('receptionFormData');
+        if (!savedData) return;
+        try {
+            const data = JSON.parse(savedData);
+            document.getElementById('patientName').value = data.name || '';
+            document.getElementById('patientAge').value = data.age || '';
+            document.getElementById('patientGender').value = data.gender || '';
+            document.getElementById('patientContact').value = data.contact || '';
+            document.getElementById('patientEmail').value = data.email || '';
+            document.getElementById('paymentMode').value = data.paymentMode || '';
+            
+            if (data.priority) {
+                const radio = document.querySelector(`input[name="priority"][value="${data.priority}"]`);
+                if (radio) radio.checked = true;
+            }
+            
+            if (data.tests && data.tests.length > 0) {
+                updatingFromCode = true;
+                document.querySelectorAll('.test-checkbox').forEach(cb => {
+                    cb.checked = data.tests.includes(cb.value);
+                });
+                updatingFromCode = false;
+            }
+            
+            calculateTotal();
+        } catch (e) {
+            console.log('Error loading saved data');
+        }
+    }
+
+    function validateTests() {
+        const checkedTests = document.querySelectorAll('.test-checkbox:checked');
+        document.getElementById('testError').style.display = checkedTests.length > 0 ? 'none' : 'block';
+    }
+
+    // ===========================================
+    // DOM CONTENT LOADED
+    // ===========================================
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('registrationForm');
+        const checkboxes = document.querySelectorAll('.test-checkbox');
+        const testError = document.getElementById('testError');
+        const paymentMode = document.getElementById('paymentMode');
+        
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                calculateTotal();
+                saveFormData();
+                validateTests();
+                checkForDuplicates();
+            });
+        });
+
+        paymentMode.addEventListener('change', saveFormData);
+        
+        const inputs = form.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            if (input.id !== 'amount') {
+                input.addEventListener('input', saveFormData);
+                input.addEventListener('change', saveFormData);
+            }
+        });
+        
+        loadFormData();
+        
+        // Form submission validation with duplicate check
+        form.addEventListener('submit', function(e) {
+            const checkedTests = Array.from(checkboxes).filter(cb => cb.checked);
+            if (checkedTests.length === 0) {
+                e.preventDefault();
+                testError.style.display = 'block';
+                testError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+            
+            // ** NEW: Check for duplicate test values **
+            const testValues = checkedTests.map(cb => cb.value);
+            const uniqueTests = [...new Set(testValues)];
+            if (uniqueTests.length !== checkedTests.length) {
+                e.preventDefault();
+                alert('Duplicate test selections detected. Please refresh the page and try again.');
+                return;
+            }
+
+            if (!paymentMode.value) {
+                e.preventDefault();
+                alert('Please select a payment mode');
+                paymentMode.focus();
+                return;
+            }
+            localStorage.removeItem('receptionFormData');
+        });
+        
+        calculateTotal();
+        
+        document.querySelectorAll('[id$="-tests"]').forEach(div => {
+            div.style.display = 'grid';
+        });
+    });
+
+    // ===========================================
+    // PATIENT SEARCH (unchanged)
+    // ===========================================
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            if (searchTerm.length < 2) {
+                searchResults.innerHTML = '';
+                return;
+            }
+            const patientsDataElement = document.getElementById('patients-data');
+            let patients = [];
+            if (patientsDataElement) {
+                try {
+                    patients = JSON.parse(patientsDataElement.textContent);
+                } catch (e) {
+                    console.error('Error parsing patients data', e);
+                }
+            }
+            const results = patients.filter(patient => 
+                patient[1].toLowerCase().includes(searchTerm)
+            );
+            if (results.length > 0) {
+                let html = '<div style="margin-top: 10px;">';
+                results.forEach(patient => {
+                    html += `
+                        <div style="padding: 12px; background: var(--light-gray); border-radius: 5px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid var(--accent);">
+                            <div>
+                                <strong style="color: var(--primary); font-size: 14px;">${patient[1]}</strong>
+                                <div style="font-size: 12px; color: var(--gray);">ID: #${patient[0]} | Age: ${patient[2]} | ${patient[3]}</div>
+                            </div>
+                            <a href="/patient/${patient[0]}" class="btn btn-sm btn-primary" style="padding: 6px 12px;">View</a>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                searchResults.innerHTML = html;
+            } else {
+                searchResults.innerHTML = '<p style="color: var(--gray); padding: 10px; text-align: center;">No patients found matching "' + searchTerm + '"</p>';
+            }
+        });
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                this.value = '';
+                searchResults.innerHTML = '';
+            }
+        });
+    }
+</script>
+{% endblock %}
+

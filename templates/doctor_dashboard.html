@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Dashboard - Medical Laboratory System{% endblock %}
+
+{% block content %}
+<div class="header">
+    <div class="flex justify-between">
+        <div>
+            <h1>👨‍⚕️ Doctor Panel</h1>
+            <p style="color: var(--light-gray);">
+                Logged in as: <strong>{{ session['username'] }}</strong>
+                <span class="badge badge-info" style="margin-left: 10px;">{{ session['role'] }}</span>
+            </p>
+        </div>
+        <div>
+            <a href="/ml/dashboard" class="btn btn-primary" style="margin-right: 10px;">🤖 ML Predictions</a>
+            <a href="/logout" class="btn btn-danger">🚪 Logout</a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid-3" style="margin-bottom: 30px;">
+    <div class="card text-center" style="border-bottom: 3px solid var(--warning);">
+        <div style="font-size: 36px; color: var(--warning); margin-bottom: 10px;">⏳</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">{{ pending_count }}</div>
+        <div class="text-gray">Pending Reports</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--danger);">
+        <div style="font-size: 36px; color: var(--danger); margin-bottom: 10px;">⚠️</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">
+            {{ reports|selectattr('2', '>=', 70)|list|length }}
+        </div>
+        <div class="text-gray">Critical Cases</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--success);">
+        <div style="font-size: 36px; color: var(--success); margin-bottom: 10px;">✓</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">
+            {{ diagnosed_count }}
+        </div>
+        <div class="text-gray">Diagnosed Today</div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="grid-2" style="gap: 30px;">
+    <!-- Pending Reports Section -->
+    <div class="card" style="grid-column: span 2;">
+        <div class="flex justify-between" style="margin-bottom: 20px;">
+            <h3 style="color: var(--primary);">📋 Patient Reports Pending Review</h3>
+            <div>
+                <span class="badge badge-warning">High Priority</span>
+                <span class="badge badge-danger" style="margin-left: 5px;">Critical</span>
+            </div>
+        </div>
+        
+        {% if reports %}
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Report ID</th>
+                        <th>Patient Name</th>
+                        <th>Risk Score</th>
+                        <th>Risk Level</th>
+                        <th>Current Diagnosis</th>
+                        <th>ML Prediction</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr style="{% if report[2] >= 70 %}background-color: rgba(231, 76, 60, 0.05);{% elif report[2] >= 40 %}background-color: rgba(243, 156, 18, 0.05);{% endif %}">
+                        <td><strong>#{{ report[0] }}</strong></td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-weight: 600; color: var(--primary);">{{ report[1] }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if report[2] >= 70 %}
+                                <span class="badge badge-stat" style="font-size: 14px;">{{ "%.1f"|format(report[2]) }}</span>
+                            {% elif report[2] >= 40 %}
+                                <span class="badge badge-urgent" style="font-size: 14px;">{{ "%.1f"|format(report[2]) }}</span>
+                            {% elif report[2] >= 20 %}
+                                <span class="badge badge-warning" style="font-size: 14px;">{{ "%.1f"|format(report[2]) }}</span>
+                            {% else %}
+                                <span class="badge badge-normal" style="font-size: 14px;">{{ "%.1f"|format(report[2]) }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if report[2] >= 70 %}
+                                <span style="color: var(--danger); font-weight: 600;">🔴 Critical</span>
+                            {% elif report[2] >= 40 %}
+                                <span style="color: var(--warning); font-weight: 600;">🟡 High</span>
+                            {% elif report[2] >= 20 %}
+                                <span style="color: var(--info); font-weight: 600;">🔵 Moderate</span>
+                            {% else %}
+                                <span style="color: var(--success); font-weight: 600;">🟢 Low</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if report[3] %}
+                                <span class="badge badge-success">Diagnosed</span>
+                                <div style="font-size: 12px; color: var(--gray); margin-top: 5px;">{{ report[3] }}</div>
+                            {% else %}
+                                <span class="badge badge-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if report[4] %}
+                                <div style="text-align: center;">
+                                    <span class="badge badge-info" style="margin-bottom: 3px;">{{ report[4] }}</span>
+                                    <div style="font-size: 11px; color: var(--gray);">ML Confidence</div>
+                                </div>
+                            {% else %}
+                                <span class="badge badge-secondary">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if not report[3] %}
+                            <a href="/add_diagnosis/{{ report[0] }}" class="btn btn-primary" 
+                               style="padding: 8px 15px; font-size: 13px; white-space: nowrap;">
+                                ✏️ Add Diagnosis
+                            </a>
+                            {% else %}
+                            <a href="/lab_view_report/{{ report[0] }}" class="btn btn-info" 
+                               style="padding: 8px 15px; font-size: 13px; white-space: nowrap;">
+                                👁️ View
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-success" style="text-align: center; padding: 40px;">
+            <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
+            <h4 style="color: var(--success); margin-bottom: 10px;">All Caught Up!</h4>
+            <p style="color: var(--gray);">No reports pending review at this time.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="grid-3" style="margin-top: 30px;">
+    <div class="card text-center">
+        <div style="font-size: 32px; color: var(--accent); margin-bottom: 10px;">📊</div>
+        <h4 style="color: var(--primary); margin-bottom: 5px;">View All Reports</h4>
+        <p style="color: var(--gray); font-size: 14px; margin-bottom: 15px;">Browse complete patient history</p>
+        <a href="/all_reports" class="btn btn-secondary" style="width: 100%;">View Reports</a>
+    </div>
+    
+    <div class="card text-center">
+        <div style="font-size: 32px; color: var(--success); margin-bottom: 10px;">📈</div>
+        <h4 style="color: var(--primary); margin-bottom: 5px;">ML Analytics</h4>
+        <p style="color: var(--gray); font-size: 14px; margin-bottom: 15px;">View prediction accuracy trends</p>
+        <a href="/ml/dashboard" class="btn btn-secondary" style="width: 100%;">View Analytics</a>
+    </div>
+    
+    <div class="card text-center">
+        <div style="font-size: 32px; color: var(--info); margin-bottom: 10px;">👥</div>
+        <h4 style="color: var(--primary); margin-bottom: 5px;">Patient List</h4>
+        <p style="color: var(--gray); font-size: 14px; margin-bottom: 15px;">View all registered patients</p>
+        <a href="/patients" class="btn btn-secondary" style="width: 100%;">View Patients</a>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="card" style="margin-top: 30px;">
+    <h3 style="color: var(--primary); margin-bottom: 20px;">🕒 Recent Diagnoses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Patient</th>
+                <th>Diagnosis</th>
+                <th>Risk Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for diagnosis in recent_diagnoses %}
+            <tr>
+                <td style="color: var(--gray);">{{ diagnosis.timestamp }}</td>
+                <td><strong>{{ diagnosis.patient_name }}</strong></td>
+                <td>{{ diagnosis.diagnosis }}</td>
+                <td>
+                    <span class="badge badge-{{ 'danger' if diagnosis.risk >= 70 else 'warning' if diagnosis.risk >= 40 else 'success' }}">
+                        {{ diagnosis.risk }}
+                    </span>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" style="text-align: center; color: var(--gray); padding: 20px;">
+                    No recent diagnoses
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh every 60 seconds
+    setTimeout(function() {
+        location.reload();
+    }, 60000);
+
+    // Highlight high-risk rows
+    document.addEventListener('DOMContentLoaded', function() {
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const riskCell = row.querySelector('td:nth-child(3) .badge');
+            if (riskCell && riskCell.classList.contains('badge-stat')) {
+                row.style.animation = 'pulse 2s infinite';
+            }
+        });
+    });
+
+    // Add tooltips for ML predictions
+    const mlCells = document.querySelectorAll('td:nth-child(6) .badge-info');
+    mlCells.forEach(cell => {
+        cell.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.05)';
+        });
+        cell.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
+</script>
+
+<style>
+    @keyframes pulse {
+        0% {
+            background-color: rgba(231, 76, 60, 0.05);
+        }
+        50% {
+            background-color: rgba(231, 76, 60, 0.15);
+        }
+        100% {
+            background-color: rgba(231, 76, 60, 0.05);
+        }
+    }
+
+    .badge-info {
+        transition: transform 0.2s;
+        cursor: help;
+    }
+</style>
+{% endblock %}

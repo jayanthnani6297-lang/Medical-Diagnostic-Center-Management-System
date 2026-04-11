@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Medical Laboratory System{% endblock %}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Professional Color Palette */
+            --primary: #2c3e50;
+            --primary-dark: #1a252f;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --accent-dark: #2980b9;
+            --success: #27ae60;
+            --success-dark: #219a52;
+            --warning: #f39c12;
+            --warning-dark: #e67e22;
+            --danger: #e74c3c;
+            --danger-dark: #c0392b;
+            --info: #17a2b8;
+            --info-dark: #138496;
+            
+            /* Neutral Colors */
+            --dark: #2c3e50;
+            --gray: #7f8c8d;
+            --light-gray: #ecf0f1;
+            --white: #ffffff;
+            --background: #f8fafc;
+            
+            /* Status Colors */
+            --status-collected: #7f8c8d;
+            --status-processing: #3498db;
+            --status-completed: #27ae60;
+            --status-verified: #17a2b8;
+            
+            /* Priority Colors */
+            --priority-normal: #7f8c8d;
+            --priority-urgent: #f39c12;
+            --priority-stat: #e74c3c;
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--background);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--white);
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .header h1, .header h2, .header h3 {
+            color: var(--white);
+            margin-bottom: 10px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--white);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+        }
+
+        .btn-primary { background: var(--accent); color: var(--white); }
+        .btn-primary:hover { background: var(--accent-dark); transform: translateY(-2px); }
+
+        .btn-success { background: var(--success); color: var(--white); }
+        .btn-success:hover { background: var(--success-dark); transform: translateY(-2px); }
+
+        .btn-warning { background: var(--warning); color: var(--white); }
+        .btn-warning:hover { background: var(--warning-dark); transform: translateY(-2px); }
+
+        .btn-danger { background: var(--danger); color: var(--white); }
+        .btn-danger:hover { background: var(--danger-dark); transform: translateY(-2px); }
+
+        .btn-info { background: var(--info); color: var(--white); }
+        .btn-info:hover { background: var(--info-dark); transform: translateY(-2px); }
+
+        .btn-secondary { background: var(--light-gray); color: var(--dark); }
+        .btn-secondary:hover { background: #d5dbdb; }
+
+        .btn:disabled, button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Status Badges */
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        .badge-collected { background: var(--status-collected); }
+        .badge-processing { background: var(--status-processing); }
+        .badge-completed { background: var(--status-completed); }
+        .badge-verified { background: var(--status-verified); }
+
+        .badge-normal { background: var(--priority-normal); }
+        .badge-urgent { background: var(--priority-urgent); color: var(--dark); }
+        .badge-stat { background: var(--priority-stat); }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            margin: 20px 0;
+        }
+
+        th {
+            background: var(--primary);
+            color: var(--white);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        tr:hover {
+            background: var(--light-gray);
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--light-gray);
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        input:read-only, select:disabled {
+            background-color: var(--light-gray);
+            cursor: not-allowed;
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: var(--success-dark);
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: var(--info-dark);
+            border: 1px solid #bee5eb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: var(--warning-dark);
+            border: 1px solid #ffeeba;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: var(--danger-dark);
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Grid Layouts */
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+        /* Progress Bar */
+        .progress {
+            height: 10px;
+            background: var(--light-gray);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s;
+        }
+
+        .progress-bar-success { background: var(--success); }
+        .progress-bar-warning { background: var(--warning); }
+        .progress-bar-danger { background: var(--danger); }
+
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-success { color: var(--success); }
+        .text-warning { color: var(--warning); }
+        .text-danger { color: var(--danger); }
+        .text-info { color: var(--info); }
+        .text-gray { color: var(--gray); }
+
+        .mt-1 { margin-top: 10px; }
+        .mt-2 { margin-top: 20px; }
+        .mt-3 { margin-top: 30px; }
+        .mb-1 { margin-bottom: 10px; }
+        .mb-2 { margin-bottom: 20px; }
+        .mb-3 { margin-bottom: 30px; }
+
+        .flex { display: flex; gap: 15px; align-items: center; }
+        .flex-wrap { flex-wrap: wrap; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-4 {
+                grid-template-columns: 1fr;
+            }
+            
+            .flex {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+    
+    <!-- Base JavaScript -->
+    <script>
+        // Global JavaScript utilities
+        (function() {
+            'use strict';
+            
+            // Add any global initialization code here
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Medical Laboratory System initialized');
+            });
+        })();
+    </script>
+    
+    <!-- Template-specific JavaScript will be injected here -->
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

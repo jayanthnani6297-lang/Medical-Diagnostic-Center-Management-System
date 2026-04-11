@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block title %}Lab Dashboard - Medical Laboratory System{% endblock %}
+
+{% block content %}
+<div class="header">
+    <div class="flex justify-between">
+        <div>
+            <h1>🔬 Lab Manager Panel</h1>
+            <p style="color: var(--light-gray);">
+                Logged in as: <strong>{{ session['username'] }}</strong>
+                <span class="badge badge-info" style="margin-left: 10px;">{{ session['role'] }}</span>
+            </p>
+        </div>
+        <div>
+            <a href="/lab_status_dashboard" class="btn btn-info" style="margin-right: 10px;">📊 Status Board</a>
+            <a href="/logout" class="btn btn-danger">🚪 Logout</a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid-3" style="margin-bottom: 30px;">
+    <div class="card text-center" style="border-bottom: 3px solid var(--warning);">
+        <div style="font-size: 36px; color: var(--warning); margin-bottom: 10px;">⏳</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">{{ pending_count }}</div>
+        <div class="text-gray">Pending Tests</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--success);">
+        <div style="font-size: 36px; color: var(--success); margin-bottom: 10px;">✓</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">{{ completed_today }}</div>
+        <div class="text-gray">Completed Today</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--info);">
+        <div style="font-size: 36px; color: var(--info); margin-bottom: 10px;">🔄</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">{{ in_progress }}</div>
+        <div class="text-gray">In Progress</div>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="grid-2" style="gap: 30px;">
+    <!-- Pending Collection Section -->
+    <div class="card">
+        <div class="flex justify-between" style="margin-bottom: 20px;">
+            <h3 style="color: var(--primary);">🧪 Pending Collection</h3>
+            <span class="badge badge-warning">{{ pending_collection|length }} Pending</span>
+        </div>
+        
+        {% if pending_collection %}
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                {% for patient in pending_collection %}
+                <div class="card" style="padding: 15px; border-left: 4px solid var(--warning);">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <h4 style="color: var(--primary); margin: 0 0 5px 0;">{{ patient.name }}</h4>
+                            <p style="color: var(--gray); font-size: 13px; margin: 0 0 5px 0;">
+                                Age: {{ patient.age }} | Gender: {{ patient.gender }}
+                            </p>
+                            <p style="color: var(--gray); font-size: 13px; margin: 0 0 10px 0;">
+                                <strong>Tests:</strong> 
+                                {% for test in patient.tests %}
+                                    <span class="badge badge-info" style="margin-right: 3px;">{{ test }}</span>
+                                {% endfor %}
+                            </p>
+                            {% if patient.priority == 'STAT' %}
+                                <span class="badge badge-stat">STAT</span>
+                            {% elif patient.priority == 'Urgent' %}
+                                <span class="badge badge-urgent">Urgent</span>
+                            {% else %}
+                                <span class="badge badge-normal">Normal</span>
+                            {% endif %}
+                            <span class="badge badge-primary" style="margin-left: 5px;">{{ patient.count }} tests</span>
+                        </div>
+                        <a href="/collect_sample/{{ patient.id }}" class="btn btn-sm btn-primary">
+                            Collect Samples
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-success" style="text-align: center; padding: 30px;">
+                <div style="font-size: 48px; margin-bottom: 10px;">🧪</div>
+                <p style="color: var(--gray);">No pending collections</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Processing Queue Section -->
+    <div class="card">
+        <div class="flex justify-between" style="margin-bottom: 20px;">
+            <h3 style="color: var(--primary);">🔬 Processing Queue</h3>
+            <span class="badge badge-info">{{ processing_queue|length }} Tests</span>
+        </div>
+        
+        {% if processing_queue %}
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                {% for test in processing_queue %}
+                <div class="card" style="padding: 15px; border-left: 4px solid var(--info);">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <h4 style="color: var(--primary); margin: 0 0 5px 0;">{{ test.patient }}</h4>
+                            <p style="color: var(--gray); font-size: 13px; margin: 0 0 5px 0;">
+                                <strong>Test:</strong> 
+                                <span class="badge badge-info">{{ test.test_type }}</span>
+                            </p>
+                            <p style="color: var(--gray); font-size: 13px; margin: 0 0 5px 0;">
+                                <strong>Barcode:</strong> 
+                                <span style="font-family: monospace; background: var(--dark); color: white; padding: 2px 6px; border-radius: 4px;">{{ test.barcode }}</span>
+                            </p>
+                            <p style="color: var(--gray); font-size: 13px; margin: 0 0 10px 0;">
+                                <strong>Status:</strong> 
+                                <span class="badge badge-{{ test.status|lower }}">{{ test.status }}</span>
+                                {% if test.result_count > 0 %}
+                                    <span class="badge badge-success">{{ test.result_count }} results</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <a href="/enter_test/{{ test.test_id }}" class="btn btn-sm btn-success">
+                            Process
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info" style="text-align: center; padding: 30px;">
+                <div style="font-size: 48px; margin-bottom: 10px;">⚙️</div>
+                <p style="color: var(--gray);">Processing queue empty</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick Actions Grid -->
+<div class="grid-4" style="margin-top: 30px;">
+    <div class="card text-center">
+        <div style="font-size: 32px; color: var(--accent); margin-bottom: 10px;">📊</div>
+        <h4 style="color: var(--primary); margin-bottom: 5px;">Status Board</h4>
+        <p style="color: var(--gray); font-size: 12px; margin-bottom: 10px;">View all test statuses</p>
+        <a href="/lab_status_dashboard" class="btn btn-info btn-sm" style="width: 100%;">View</a>
+    </div>
+    
+    <div class="card text-center">
+        <div style="font-size: 32px; color: var(--success); margin-bottom: 10px;">📋</div>
+        <h4 style="color: var(--primary); margin-bottom: 5px;">Completed</h4>
+        <p style="color: var(--gray); font-size: 12px; margin-bottom: 10px;">View completed tests</p>
+        <a href="/lab_completed" class="btn btn-success btn-sm" style="width: 100%;">View</a>
+    </div>
+    
+    <div class="card text-center">
+        <div style="font-size: 32px; color: var(--warning); margin-bottom: 10px;">⏳</div>
+        <h4 style="color: var(--primary); margin-bottom: 5px;">In Progress</h4>
+        <p style="color: var(--gray); font-size: 12px; margin-bottom: 10px;">Tests being processed</p>
+        <a href="/lab_in_progress" class="btn btn-warning btn-sm" style="width: 100%;">View</a>
+    </div>
+    
+    <div class="card text-center">
+        <div style="font-size: 32px; color: var(--info); margin-bottom: 10px;">📈</div>
+        <h4 style="color: var(--primary); margin-bottom: 5px;">Reports</h4>
+        <p style="color: var(--gray); font-size: 12px; margin-bottom: 10px;">Generate lab reports</p>
+        <a href="/lab_reports" class="btn btn-secondary btn-sm" style="width: 100%;">Generate</a>
+    </div>
+</div>
+
+<!-- Recent Activity Timeline -->
+<div class="card" style="margin-top: 30px;">
+    <h3 style="color: var(--primary); margin-bottom: 20px;">🕒 Recent Lab Activity</h3>
+    
+    <div style="display: flex; flex-direction: column; gap: 15px;">
+        {% for activity in recent_activities %}
+        <div style="display: flex; align-items: center; gap: 15px; padding: 10px; background: var(--light-gray); border-radius: 8px;">
+            <div style="width: 40px; height: 40px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+                {{ loop.index }}
+            </div>
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between;">
+                    <strong style="color: var(--primary);">{{ activity.patient_name }}</strong>
+                    <span style="color: var(--gray); font-size: 12px;">{{ activity.time }}</span>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 5px;">
+                    <span class="badge badge-{{ activity.status_color }}">{{ activity.test }}</span>
+                    <span style="color: var(--gray);">by {{ activity.technician }}</span>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 20px; color: var(--gray);">
+            No recent activity
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Test Statistics -->
+<div class="grid-2" style="margin-top: 30px;">
+    <div class="card">
+        <h4 style="color: var(--primary); margin-bottom: 15px;">📊 Test Type Distribution</h4>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            {% for test in test_distribution %}
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span style="color: var(--gray);">{{ test.name }}</span>
+                    <span style="font-weight: bold;">{{ test.count }}</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar" style="width: {{ test.percentage }}%; background: var(--accent);"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="card">
+        <h4 style="color: var(--primary); margin-bottom: 15px;">⚡ Lab Performance</h4>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--gray);">Average Processing Time:</span>
+                <span style="font-weight: bold; color: var(--success);">{{ avg_processing_time }} min</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--gray);">Tests Processed Today:</span>
+                <span style="font-weight: bold;">{{ tests_today }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--gray);">Completion Rate:</span>
+                <span style="font-weight: bold; color: var(--success);">{{ completion_rate }}%</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--gray);">On-Time Delivery:</span>
+                <span style="font-weight: bold; color: var(--success);">{{ on_time_rate }}%</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh every 30 seconds
+    setTimeout(function() {
+        location.reload();
+    }, 30000);
+
+    // Add hover effects to cards
+    document.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = 'var(--shadow-md)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = 'var(--shadow-sm)';
+        });
+    });
+
+    // Highlight urgent cases
+    document.addEventListener('DOMContentLoaded', function() {
+        const urgentBadges = document.querySelectorAll('.badge-stat, .badge-urgent');
+        urgentBadges.forEach(badge => {
+            const parentCard = badge.closest('.card');
+            if (parentCard) {
+                parentCard.style.animation = 'pulse 2s infinite';
+            }
+        });
+    });
+</script>
+
+<style>
+    @keyframes pulse {
+        0% {
+            background-color: rgba(231, 76, 60, 0.05);
+        }
+        50% {
+            background-color: rgba(231, 76, 60, 0.15);
+        }
+        100% {
+            background-color: rgba(231, 76, 60, 0.05);
+        }
+    }
+    
+    .badge {
+        transition: all 0.2s;
+    }
+    
+    .badge:hover {
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}

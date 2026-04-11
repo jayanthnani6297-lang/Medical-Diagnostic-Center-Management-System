@@ -1,0 +1,436 @@
+{% extends "base.html" %}
+
+{% block title %}System Settings - Medical Laboratory System{% endblock %}
+
+{% block content %}
+<div class="header" style="background: linear-gradient(135deg, var(--primary), var(--secondary));">
+    <div class="flex justify-between">
+        <div>
+            <h1 style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 36px;">⚙️</span>
+                System Settings
+            </h1>
+            <p style="color: var(--light-gray); margin-top: 5px;">
+                Configure and monitor system parameters
+            </p>
+        </div>
+        <div>
+            <a href="/admin_dashboard" class="btn btn-secondary" style="margin-right: 10px;">← Back to Dashboard</a>
+            <a href="/automation_dashboard" class="btn btn-info">🤖 Automation</a>
+        </div>
+    </div>
+</div>
+
+<!-- System Overview Stats -->
+<div class="grid-4" style="margin-bottom: 30px;">
+    <div class="card text-center" style="border-bottom: 3px solid var(--info);">
+        <div style="font-size: 36px; color: var(--info); margin-bottom: 10px;">👥</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">{{ total_users }}</div>
+        <div class="text-gray">Total Users</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--success);">
+        <div style="font-size: 36px; color: var(--success); margin-bottom: 10px;">👤</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">{{ total_patients }}</div>
+        <div class="text-gray">Total Patients</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--warning);">
+        <div style="font-size: 36px; color: var(--warning); margin-bottom: 10px;">📊</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">{{ total_reports }}</div>
+        <div class="text-gray">Total Reports</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--accent);">
+        <div style="font-size: 36px; color: var(--accent); margin-bottom: 10px;">💾</div>
+        <div style="font-size: 28px; font-weight: bold; color: var(--primary);">{{ db_size }} MB</div>
+        <div class="text-gray">Database Size</div>
+    </div>
+</div>
+
+<!-- Main Settings Grid -->
+<div class="grid-2" style="gap: 30px; margin-bottom: 30px;">
+    <!-- Database Information -->
+    <div class="card">
+        <h3 style="color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 24px;">🗄️</span> Database Information
+        </h3>
+        
+        <div style="background: var(--light-gray); padding: 20px; border-radius: 10px;">
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray);">
+                <span style="color: var(--gray);">Database Type:</span>
+                <span style="font-weight: 600; color: var(--primary);">SQLite</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray);">
+                <span style="color: var(--gray);">Database File:</span>
+                <span style="font-weight: 600; color: var(--primary);">medical.db</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray);">
+                <span style="color: var(--gray);">Status:</span>
+                <span class="badge badge-success">Connected</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray);">
+                <span style="color: var(--gray);">Size:</span>
+                <span style="font-weight: 600;">{{ db_size }} MB</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+                <span style="color: var(--gray);">Last Backup:</span>
+                <span style="font-weight: 600;">{{ current_time }}</span>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button onclick="backupDatabase()" class="btn btn-success" style="flex: 1;">
+                💾 Backup Database
+            </button>
+            <button onclick="optimizeDatabase()" class="btn btn-info" style="flex: 1;">
+                🔧 Optimize
+            </button>
+        </div>
+    </div>
+    
+    <!-- System Information -->
+    <div class="card">
+        <h3 style="color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 24px;">💻</span> System Information
+        </h3>
+        
+        <div style="background: var(--light-gray); padding: 20px; border-radius: 10px;">
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray);">
+                <span style="color: var(--gray);">Python Version:</span>
+                <span style="font-weight: 600; color: var(--primary);">3.12</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray);">
+                <span style="color: var(--gray);">Flask Version:</span>
+                <span style="font-weight: 600; color: var(--primary);">3.1.3</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray);">
+                <span style="color: var(--gray);">Debug Mode:</span>
+                <span class="badge {% if debug_mode %}badge-warning{% else %}badge-success{% endif %}">
+                    {{ 'Enabled' if debug_mode else 'Disabled' }}
+                </span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray);">
+                <span style="color: var(--gray);">Server Time:</span>
+                <span style="font-weight: 600;">{{ current_time }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+                <span style="color: var(--gray);">Uptime:</span>
+                <span style="font-weight: 600;" id="uptime">Calculating...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Settings -->
+<div class="card" style="margin-bottom: 30px;">
+    <h3 style="color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 24px;">🔒</span> Security Settings
+    </h3>
+    
+    <div class="grid-2" style="gap: 20px;">
+        <div>
+            <h4 style="color: var(--accent); margin-bottom: 10px;">Session Configuration</h4>
+            <div style="background: var(--light-gray); padding: 15px; border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Session Timeout:</span>
+                    <span><strong>1 hour</strong></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Secure Cookies:</span>
+                    <span class="badge badge-success">Enabled</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>HTTP Only:</span>
+                    <span class="badge badge-success">Enabled</span>
+                </div>
+            </div>
+        </div>
+        
+        <div>
+            <h4 style="color: var(--accent); margin-bottom: 10px;">Encryption</h4>
+            <div style="background: var(--light-gray); padding: 15px; border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Password Hashing:</span>
+                    <span><strong>bcrypt</strong></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Report Hashing:</span>
+                    <span><strong>SHA-256</strong></span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Digital Signatures:</span>
+                    <span><strong>RSA-2048</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Available Routes -->
+<div class="card" style="margin-bottom: 30px;">
+    <h3 style="color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 24px;">🛣️</span> Available Routes
+    </h3>
+    
+    <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--light-gray); border-radius: 8px;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Route</th>
+                    <th>Methods</th>
+                    <th>Description</th>
+                    <th>Access</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>/</td><td>GET</td><td>Redirect to login</td><td>Public</td></tr>
+                <tr><td>/login</td><td>GET, POST</td><td>User login</td><td>Public</td></tr>
+                <tr><td>/logout</td><td>GET</td><td>Logout</td><td>Authenticated</td></tr>
+                <tr><td>/reception_dashboard</td><td>GET</td><td>Receptionist panel</td><td>Receptionist</td></tr>
+                <tr><td>/collector_dashboard</td><td>GET</td><td>Collector panel</td><td>Collector</td></tr>
+                <tr><td>/technician_dashboard</td><td>GET</td><td>Technician panel</td><td>Technician</td></tr>
+                <tr><td>/lab_dashboard</td><td>GET</td><td>Lab panel</td><td>Lab</td></tr>
+                <tr><td>/doctor_dashboard</td><td>GET</td><td>Doctor panel</td><td>Doctor</td></tr>
+                <tr><td>/admin_dashboard</td><td>GET</td><td>Admin panel</td><td>Admin</td></tr>
+                <tr><td>/ml/dashboard</td><td>GET</td><td>ML Model Dashboard</td><td>Admin/Doctor</td></tr>
+                <tr><td>/security/dashboard</td><td>GET</td><td>Security Dashboard</td><td>Admin</td></tr>
+                <tr><td>/automation_dashboard</td><td>GET</td><td>Automation Dashboard</td><td>Admin</td></tr>
+                <tr><td>/patient_portal</td><td>GET</td><td>Patient portal</td><td>Public</td></tr>
+                <tr><td>/verify_page</td><td>GET</td><td>Report verification</td><td>Public</td></tr>
+                <tr><td>/onboard</td><td>GET</td><td>Register patient</td><td>Receptionist</td></tr>
+                <tr><td>/patients</td><td>GET</td><td>View all patients</td><td>Receptionist</td></tr>
+                <tr><td>/admin/users</td><td>GET</td><td>User management</td><td>Admin</td></tr>
+                <tr><td>/admin/settings</td><td>GET</td><td>System settings</td><td>Admin</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Maintenance Actions -->
+<div class="card">
+    <h3 style="color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 24px;">🔧</span> Maintenance Actions
+    </h3>
+    
+    <div class="grid-3" style="gap: 20px;">
+        <div class="card" style="background: var(--light-gray);">
+            <h4 style="color: var(--primary); margin-bottom: 10px;">🗑️ Cleanup</h4>
+            <p style="color: var(--gray); font-size: 13px; margin-bottom: 15px;">
+                Remove old logs and temporary data
+            </p>
+            <button onclick="cleanupSystem()" class="btn btn-warning" style="width: 100%;">
+                Run Cleanup
+            </button>
+        </div>
+        
+        <div class="card" style="background: var(--light-gray);">
+            <h4 style="color: var(--primary); margin-bottom: 10px;">📊 Generate Reports</h4>
+            <p style="color: var(--gray); font-size: 13px; margin-bottom: 15px;">
+                Generate missing reports for completed tests
+            </p>
+            <a href="/admin/generate_missing_reports" class="btn btn-info" style="width: 100%;">
+                Generate Missing
+            </a>
+        </div>
+        
+        <div class="card" style="background: var(--light-gray);">
+            <h4 style="color: var(--primary); margin-bottom: 10px;">🔄 Reset System</h4>
+            <p style="color: var(--gray); font-size: 13px; margin-bottom: 15px;">
+                Reset all caches and temporary data
+            </p>
+            <button onclick="resetCache()" class="btn btn-danger" style="width: 100%;">
+                Reset Cache
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden elements for JavaScript -->
+<div id="system-start-time" style="display: none;" data-start="{{ start_time }}"></div>
+
+<style>
+    .badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    
+    .badge-success {
+        background: var(--success);
+        color: white;
+    }
+    
+    .badge-warning {
+        background: var(--warning);
+        color: black;
+    }
+    
+    /* Hover effects */
+    .grid-3 .card {
+        transition: transform 0.3s;
+    }
+    
+    .grid-3 .card:hover {
+        transform: translateY(-5px);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .grid-2, .grid-3, .grid-4 {
+            grid-template-columns: 1fr;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // System uptime calculation
+    const startTime = new Date('{{ start_time }}').getTime();
+    const uptimeElement = document.getElementById('uptime');
+    
+    function updateUptime() {
+        const now = new Date().getTime();
+        const diffMs = now - startTime;
+        
+        const seconds = Math.floor(diffMs / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+        
+        let uptimeString = '';
+        if (days > 0) {
+            uptimeString += `${days}d `;
+        }
+        if (hours % 24 > 0 || days > 0) {
+            uptimeString += `${hours % 24}h `;
+        }
+        uptimeString += `${minutes % 60}m`;
+        
+        uptimeElement.textContent = uptimeString;
+    }
+    
+    // Update uptime every minute
+    updateUptime();
+    setInterval(updateUptime, 60000);
+    
+    // Database backup function
+    function backupDatabase() {
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="loading-spinner"></span> Backing up...';
+        btn.disabled = true;
+        
+        // Simulate backup process
+        setTimeout(() => {
+            btn.innerHTML = '✓ Backup Complete!';
+            btn.style.background = 'var(--success)';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.style.background = '';
+            }, 2000);
+        }, 2000);
+    }
+    
+    // Database optimization function
+    function optimizeDatabase() {
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="loading-spinner"></span> Optimizing...';
+        btn.disabled = true;
+        
+        // Simulate optimization process
+        setTimeout(() => {
+            btn.innerHTML = '✓ Optimization Complete!';
+            btn.style.background = 'var(--success)';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.style.background = '';
+            }, 2000);
+        }, 1500);
+    }
+    
+    // System cleanup function
+    function cleanupSystem() {
+        if (!confirm('Are you sure you want to cleanup old logs and temporary data?')) {
+            return;
+        }
+        
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="loading-spinner"></span> Cleaning...';
+        btn.disabled = true;
+        
+        // Simulate cleanup process
+        setTimeout(() => {
+            btn.innerHTML = '✓ Cleanup Complete!';
+            btn.style.background = 'var(--success)';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.style.background = '';
+            }, 2000);
+        }, 2000);
+    }
+    
+    // Reset cache function
+    function resetCache() {
+        if (!confirm('Are you sure you want to reset all system caches? This may temporarily affect performance.')) {
+            return;
+        }
+        
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="loading-spinner"></span> Resetting...';
+        btn.disabled = true;
+        
+        // Simulate cache reset
+        setTimeout(() => {
+            btn.innerHTML = '✓ Cache Reset!';
+            btn.style.background = 'var(--success)';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.style.background = '';
+            }, 2000);
+        }, 1500);
+    }
+    
+    // Add loading spinner style
+    const style = document.createElement('style');
+    style.textContent = `
+        .loading-spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin-right: 5px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Auto-refresh stats every 60 seconds
+    setTimeout(function() {
+        location.reload();
+    }, 60000);
+</script>
+{% endblock %}

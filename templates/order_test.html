@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Order New Test{% endblock %}
+
+{% block content %}
+<div class="header" style="background: linear-gradient(135deg, var(--accent), var(--accent-dark));">
+    <h1>🔄 Order Additional Tests</h1>
+    <a href="/patient/{{ patient_id }}" class="btn btn-secondary">← Back to Patient</a>
+</div>
+
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <h3>Order New Test for Patient #{{ patient_id }}</h3>
+    
+    <form method="POST" action="/order_test_submit/{{ patient_id }}" id="orderForm">
+        <div class="form-group">
+            <label>🔬 Select Test</label>
+            <select name="test_type" id="testType" class="form-control" required onchange="updatePrice()">
+                <option value="">-- Choose a test --</option>
+                <!-- Hematology -->
+                <option value="cbc" data-price="500">🩸 Complete Blood Count (CBC) - ₹500</option>
+                <option value="hemoglobin" data-price="150">🩸 Hemoglobin - ₹150</option>
+                <option value="wbc_count" data-price="200">🩸 WBC Count - ₹200</option>
+                <option value="platelet_count" data-price="200">🩸 Platelet Count - ₹200</option>
+                <option value="esr" data-price="180">🩸 ESR - ₹180</option>
+                <option value="peripheral_smear" data-price="300">🩸 Peripheral Smear - ₹300</option>
+                <option value="blood_group" data-price="150">🩸 Blood Group - ₹150</option>
+                
+                <!-- Diabetes -->
+                <option value="fasting_glucose" data-price="150">💉 Fasting Glucose - ₹150</option>
+                <option value="postprandial_glucose" data-price="150">💉 Postprandial Glucose - ₹150</option>
+                <option value="random_glucose" data-price="150">💉 Random Glucose - ₹150</option>
+                <option value="hba1c" data-price="400">💉 HbA1c - ₹400</option>
+                <option value="gtt" data-price="600">💉 Glucose Tolerance Test (GTT) - ₹600</option>
+                
+                <!-- Lipid Profile -->
+                <option value="lipid_profile" data-price="800">🫀 Lipid Profile - ₹800</option>
+                <option value="total_cholesterol" data-price="200">🫀 Total Cholesterol - ₹200</option>
+                <option value="hdl" data-price="250">🫀 HDL Cholesterol - ₹250</option>
+                <option value="ldl" data-price="250">🫀 LDL Cholesterol - ₹250</option>
+                <option value="triglycerides" data-price="250">🫀 Triglycerides - ₹250</option>
+                
+                <!-- Liver Function -->
+                <option value="lft" data-price="1000">🧪 Liver Function Test (LFT) - ₹1000</option>
+                <option value="sgpt_alt" data-price="200">🧪 SGPT/ALT - ₹200</option>
+                <option value="sgot_ast" data-price="200">🧪 SGOT/AST - ₹200</option>
+                <option value="alkaline_phosphatase" data-price="200">🧪 Alkaline Phosphatase - ₹200</option>
+                <option value="total_bilirubin" data-price="180">🧪 Total Bilirubin - ₹180</option>
+                
+                <!-- Kidney Function -->
+                <option value="kft" data-price="900">💧 Kidney Function Test (KFT) - ₹900</option>
+                <option value="blood_urea" data-price="180">💧 Blood Urea - ₹180</option>
+                <option value="serum_creatinine" data-price="180">💧 Serum Creatinine - ₹180</option>
+                <option value="uric_acid" data-price="200">💧 Uric Acid - ₹200</option>
+                
+                <!-- Thyroid -->
+                <option value="tsh" data-price="400">🏥 TSH - ₹400</option>
+                <option value="t3" data-price="400">🏥 T3 - ₹400</option>
+                <option value="t4" data-price="400">🏥 T4 - ₹400</option>
+                
+                <!-- Cardiac -->
+                <option value="troponin_i" data-price="1200">❤️ Troponin I - ₹1200</option>
+                <option value="ck_mb" data-price="800">❤️ CK-MB - ₹800</option>
+                
+                <!-- Vitamins -->
+                <option value="vitamin_d" data-price="1500">☀️ Vitamin D - ₹1500</option>
+                <option value="vitamin_b12" data-price="1200">💊 Vitamin B12 - ₹1200</option>
+                
+                <!-- Infectious Diseases -->
+                <option value="dengue_ns1" data-price="1200">🦟 Dengue NS1 - ₹1200</option>
+                <option value="malaria" data-price="600">🦟 Malaria - ₹600</option>
+                <option value="typhoid" data-price="700">🦠 Typhoid - ₹700</option>
+                
+                <!-- Urine -->
+                <option value="urine_routine" data-price="300">💛 Urine Routine - ₹300</option>
+                <option value="urine_culture" data-price="800">💛 Urine Culture - ₹800</option>
+            </select>
+        </div>
+        
+        <!-- Price Display -->
+        <div class="card" style="background: var(--light-gray); margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 18px; font-weight: bold;">Test Price:</span>
+                <span style="font-size: 24px; font-weight: bold; color: var(--accent);" id="priceDisplay">₹0</span>
+            </div>
+        </div>
+        
+        <!-- Payment Section -->
+        <div class="card" style="background: #f0f8ff; margin-bottom: 20px;">
+            <h4>💳 Payment Details</h4>
+            
+            <div class="form-group">
+                <label>💰 Amount to Pay</label>
+                <input type="number" name="amount_paid" id="amountPaid" class="form-control" 
+                       min="0" step="10" required readonly>
+                <small style="color: var(--gray);">Amount is fixed to test price</small>
+            </div>
+            
+            <div class="form-group">
+                <label>💵 Payment Mode</label>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        <input type="radio" name="payment_mode" value="cash" checked> 💵 Cash
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        <input type="radio" name="payment_mode" value="card"> 💳 Card
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        <input type="radio" name="payment_mode" value="upi"> 📱 UPI
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>⚡ Priority</label>
+            <select name="priority" class="form-control" required>
+                <option value="Normal">🟢 Normal</option>
+                <option value="Urgent">🟡 Urgent</option>
+                <option value="STAT">🔴 STAT</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>📝 Notes (Optional)</label>
+            <textarea name="notes" class="form-control" rows="2" placeholder="Any special instructions..."></textarea>
+        </div>
+        
+        <div style="display: flex; gap: 15px; justify-content: center;">
+            <button type="submit" class="btn btn-success" style="padding: 12px 30px;">
+                💰 Order Test & Collect Payment
+            </button>
+            <a href="/patient/{{ patient_id }}" class="btn btn-secondary" style="padding: 12px 30px;">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+    function updatePrice() {
+        const select = document.getElementById('testType');
+        const selectedOption = select.options[select.selectedIndex];
+        const price = selectedOption.getAttribute('data-price') || 0;
+        
+        document.getElementById('priceDisplay').textContent = `₹${price}`;
+        document.getElementById('amountPaid').value = price;
+    }
+    
+    // Set initial price if any option is selected
+    document.addEventListener('DOMContentLoaded', function() {
+        updatePrice();
+    });
+</script>
+
+<style>
+    select option {
+        padding: 8px;
+    }
+    
+    select optgroup {
+        font-weight: bold;
+        color: var(--primary);
+    }
+</style>
+{% endblock %}

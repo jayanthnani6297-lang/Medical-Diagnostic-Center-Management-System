@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Notification Settings{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>📱 Notification Settings</h1>
+</div>
+
+<div class="card">
+    <h3>Patient Communication Preferences</h3>
+    
+    <form method="POST" action="/update_notification/{{ patient_id }}">
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" value="{{ patient.email }}">
+        </div>
+        
+        <div class="form-group">
+            <label>Phone Number (for SMS)</label>
+            <input type="tel" name="phone" value="{{ patient.phone }}">
+        </div>
+        
+        <div class="form-group">
+            <label>Notification Preferences</label>
+            <div>
+                <input type="checkbox" name="notify_email" checked> Email when report ready<br>
+                <input type="checkbox" name="notify_sms"> SMS for critical values<br>
+                <input type="checkbox" name="notify_portal"> Portal message only
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Save Preferences</button>
+    </form>
+</div>
+{% endblock %}

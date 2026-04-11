@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Medical Laboratory System{% endblock %}
+
+{% block content %}
+<div class="header">
+    <div class="flex justify-between">
+        <div>
+            <h1>👑 Admin Dashboard</h1>
+            <p style="color: var(--light-gray);">
+                Logged in as: <strong>{{ session['username'] }}</strong> 
+                <span class="badge badge-verified" style="margin-left: 10px;">{{ session['role'] }}</span>
+            </p>
+        </div>
+        <div>
+            <a href="/automation_dashboard" class="btn btn-info" style="margin-right: 10px;">
+                🤖 Automation Dashboard
+            </a>
+            <a href="/ml/dashboard" class="btn btn-primary" style="margin-right: 10px;">🤖 ML Models</a>
+            <a href="/logout" class="btn btn-danger">🚪 Logout</a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid-4">
+    <div class="card text-center" style="border-bottom: 3px solid var(--accent);">
+        <div style="font-size: 48px; color: var(--accent); margin-bottom: 10px;">👤</div>
+        <div style="font-size: 36px; font-weight: bold; color: var(--primary);">{{ total_patients }}</div>
+        <div class="text-gray" style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Total Patients</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--success);">
+        <div style="font-size: 48px; color: var(--success); margin-bottom: 10px;">🔬</div>
+        <div style="font-size: 36px; font-weight: bold; color: var(--primary);">{{ total_tests }}</div>
+        <div class="text-gray" style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Total Tests</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--warning);">
+        <div style="font-size: 48px; color: var(--warning); margin-bottom: 10px;">📊</div>
+        <div style="font-size: 36px; font-weight: bold; color: var(--primary);">{{ total_reports }}</div>
+        <div class="text-gray" style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Total Reports</div>
+    </div>
+    
+    <div class="card text-center" style="border-bottom: 3px solid var(--danger);">
+        <div style="font-size: 48px; color: var(--danger); margin-bottom: 10px;">⚠️</div>
+        <div style="font-size: 36px; font-weight: bold; color: var(--primary);">{{ high_risk }}</div>
+        <div class="text-gray" style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">High Risk Reports</div>
+    </div>
+</div>
+
+<!-- Quick Actions and Overview -->
+<div class="grid-2" style="margin-top: 30px;">
+    <!-- System Actions -->
+    <div class="card">
+        <h3 style="margin-bottom: 20px; color: var(--primary); border-bottom: 2px solid var(--light-gray); padding-bottom: 10px;">
+            🛠️ System Actions
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <a href="/automation_dashboard" class="btn btn-info" style="text-align: center;">
+                🤖 Automation Dashboard
+            </a>
+            <a href="/ml/dashboard" class="btn btn-primary" style="text-align: center;">
+                🤖 ML Model Dashboard
+            </a>
+            <a href="/admin/users" class="btn btn-info" style="text-align: center;">
+                👥 Manage Users
+            </a>
+            <a href="/admin/settings" class="btn btn-secondary" style="text-align: center;">
+                ⚙️ System Settings
+            </a>
+        </div>
+    </div>
+    
+    <!-- System Overview -->
+    <div class="card">
+        <h3 style="margin-bottom: 20px; color: var(--primary); border-bottom: 2px solid var(--light-gray); padding-bottom: 10px;">
+            📈 System Overview
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--gray);">Total Users:</span>
+                <span style="font-weight: bold; color: var(--primary);">{{ total_users }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--gray);">Database:</span>
+                <span style="font-weight: bold; color: var(--success);">SQLite ✓</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--gray);">System Status:</span>
+                <span class="badge badge-completed">Active</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--gray);">Last Updated:</span>
+                <span style="font-weight: bold;">{{ current_time }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Status Distribution -->
+<div class="card" style="margin-top: 30px;">
+    <h3 style="margin-bottom: 20px; color: var(--primary);">📊 Test Status Distribution</h3>
+    <div class="grid-4" style="gap: 15px;">
+        <div style="background: var(--light-gray); padding: 15px; border-radius: 8px; text-align: center;">
+            <span class="badge badge-collected" style="margin-bottom: 5px;">Collected</span>
+            <div style="font-size: 24px; font-weight: bold; color: var(--primary);">{{ status_counts.get('Collected', 0) }}</div>
+        </div>
+        <div style="background: var(--light-gray); padding: 15px; border-radius: 8px; text-align: center;">
+            <span class="badge badge-processing" style="margin-bottom: 5px;">Processing</span>
+            <div style="font-size: 24px; font-weight: bold; color: var(--primary);">{{ status_counts.get('Processing', 0) }}</div>
+        </div>
+        <div style="background: var(--light-gray); padding: 15px; border-radius: 8px; text-align: center;">
+            <span class="badge badge-completed" style="margin-bottom: 5px;">Completed</span>
+            <div style="font-size: 24px; font-weight: bold; color: var(--primary);">{{ status_counts.get('Completed', 0) }}</div>
+        </div>
+        <div style="background: var(--light-gray); padding: 15px; border-radius: 8px; text-align: center;">
+            <span class="badge badge-verified" style="margin-bottom: 5px;">Verified</span>
+            <div style="font-size: 24px; font-weight: bold; color: var(--primary);">{{ status_counts.get('Verified', 0) }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Audit Logs -->
+<div class="card" style="margin-top: 30px;">
+    <div class="flex justify-between" style="margin-bottom: 20px;">
+        <h3 style="color: var(--primary);">📋 Recent Activity</h3>
+        <span class="badge badge-info">Live Updates</span>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Actor</th>
+                <th>Action</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if recent_logs %}
+                {% for log in recent_logs %}
+                <tr>
+                    <td style="color: var(--gray);">{{ log[0] }}</td>
+                    <td>
+                        <span style="font-weight: 600; color: var(--primary);">{{ log[1] }}</span>
+                    </td>
+                    <td>
+                        {% if 'login' in log[2]|lower %}
+                            <span class="badge badge-success">Login</span>
+                        {% elif 'logout' in log[2]|lower %}
+                            <span class="badge badge-warning">Logout</span>
+                        {% elif 'create' in log[2]|lower %}
+                            <span class="badge badge-info">Create</span>
+                        {% elif 'update' in log[2]|lower %}
+                            <span class="badge badge-primary">Update</span>
+                        {% elif 'delete' in log[2]|lower %}
+                            <span class="badge badge-danger">Delete</span>
+                        {% else %}
+                            <span class="badge badge-secondary">{{ log[2] }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="color: var(--dark);">{{ log[3] }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="4" style="text-align: center; color: var(--gray); padding: 30px;">
+                        No recent activity logs available
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Quick Stats Footer -->
+<div style="margin-top: 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+    <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 15px; border-radius: 8px; text-align: center;">
+        <div style="color: white; font-size: 14px; opacity: 0.9;">Today's Tests</div>
+        <div style="color: white; font-size: 28px; font-weight: bold;">{{ today_tests }}</div>
+    </div>
+    <div style="background: linear-gradient(135deg, var(--accent), var(--accent-dark)); padding: 15px; border-radius: 8px; text-align: center;">
+        <div style="color: white; font-size: 14px; opacity: 0.9;">Pending Reports</div>
+        <div style="color: white; font-size: 28px; font-weight: bold;">{{ pending_reports }}</div>
+    </div>
+    <div style="background: linear-gradient(135deg, var(--success), var(--success-dark)); padding: 15px; border-radius: 8px; text-align: center;">
+        <div style="color: white; font-size: 14px; opacity: 0.9;">Completion Rate</div>
+        <div style="color: white; font-size: 28px; font-weight: bold;">{{ completion_rate }}%</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh data every 30 seconds
+    setTimeout(function() {
+        location.reload();
+    }, 30000);
+
+    // Add hover effects to cards
+    document.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+
+    // Add animation to new logs
+    const tableRows = document.querySelectorAll('tbody tr');
+    if (tableRows.length > 0) {
+        tableRows[0].style.animation = 'highlight 2s';
+    }
+</script>
+
+<style>
+    @keyframes highlight {
+        0% {
+            background-color: rgba(52, 152, 219, 0.2);
+        }
+        100% {
+            background-color: transparent;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enter Test Values</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .header h2 {
+            color: #333;
+        }
+        
+        .status-badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .status-Collected { background: #6c757d; color: white; }
+        .status-Processing { background: #007bff; color: white; }
+        .status-Completed { background: #28a745; color: white; }
+        .status-Verified { background: #17a2b8; color: white; }
+        
+        .info-box {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .ref-range-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+        
+        .test-form {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .form-group {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .form-group h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .parameter-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .parameter-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        .parameter-input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #e2e8f0;
+            border-radius: 5px;
+        }
+        
+        .parameter-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .parameter-input:read-only {
+            background-color: #e9ecef;
+            border-color: #ced4da;
+            cursor: not-allowed;
+        }
+        
+        .ref-range {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .ref-normal { color: #28a745; }
+        .ref-high { color: #dc3545; }
+        .ref-low { color: #ffc107; }
+        
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            flex: 2;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+            flex: 1;
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .helper-text {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+        
+        /* Alert styles for existing results view */
+        .alert {
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .results-table th {
+            background: #343a40;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .results-table td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .results-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .results-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .entry-source {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #6c757d;
+            color: white;
+            margin-top: 10px;
+        }
+        
+        .source-machine {
+            background: #007bff;
+        }
+        
+        .source-manual {
+            background: #28a745;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .parameter-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-card">
+            <div class="header">
+                <h2>
+                    {% if test_type == "cbc" %}
+                        🩸 CBC Test Entry
+                    {% elif test_type == "diabetes" %}
+                        💉 Diabetes Test Entry
+                    {% elif test_type == "lipid" %}
+                        🫀 Lipid Profile Entry
+                    {% elif test_type == "bp" %}
+                        ❤️ Blood Pressure Entry
+                    {% elif test_type == "bmi" %}
+                        ⚖️ BMI Entry
+                    {% else %}
+                        📋 {{ test_type|upper }} Test Entry
+                    {% endif %}
+                </h2>
+                <span class="status-badge status-{{ status }}">{{ status }}</span>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="info-label">Test ID:</span>
+                    <span>#{{ patient_test_id }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Patient ID:</span>
+                    <span>#{{ patient_id }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Patient Name:</span>
+                    <span>{{ patient_name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Entry Method:</span>
+                    <span>Manual Entry</span>
+                </div>
+            </div>
+            
+            <!-- Check if test results already exist -->
+            {% if test_results %}
+                <!-- Display results view -->
+                <div class="alert alert-info">
+                    <h4 style="margin-bottom: 15px;">📋 Test Results Already Entered</h4>
+                    <p style="margin-bottom: 20px;">These results have been recorded for this test:</p>
+                    
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Value</th>
+                                <th>Reference Range</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in test_results %}
+                            <tr>
+                                <td><strong>{{ result[0]|replace('_', ' ')|title }}</strong></td>
+                                <td>
+                                    <span style="font-weight: 600; 
+                                        {% if result[3] is defined %}
+                                            {% if result[3] == 'high' %}color: #dc3545;
+                                            {% elif result[3] == 'low' %}color: #ffc107;
+                                            {% else %}color: #28a745;{% endif %}
+                                        {% endif %}">
+                                        {{ result[1] }}
+                                        {% if result[2] is defined and result[2] %}
+                                            {{ result[2] }}
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if result[4] is defined %}
+                                        {{ result[4] }}
+                                    {% else %}
+                                        {% if test_type == "cbc" %}
+                                            {% if result[0] == 'hemoglobin' %}12.0-17.5 g/dL
+                                            {% elif result[0] == 'wbc' %}4500-11000 cells/µL
+                                            {% elif result[0] == 'rbc' %}4.1-5.9 million/µL
+                                            {% elif result[0] == 'platelets' %}150000-450000 cells/µL
+                                            {% elif result[0] == 'hematocrit' %}36-50%
+                                            {% elif result[0] == 'mcv' %}80-100 fL
+                                            {% elif result[0] == 'mch' %}27-33 pg
+                                            {% elif result[0] == 'mchc' %}32-36 g/dL
+                                            {% else %}Standard range{% endif %}
+                                        {% elif test_type == "diabetes" %}
+                                            {% if result[0] == 'fasting_glucose' %}70-99 mg/dL
+                                            {% elif result[0] == 'postprandial_glucose' %}70-140 mg/dL
+                                            {% elif result[0] == 'hba1c' %}4.0-5.6%
+                                            {% else %}Standard range{% endif %}
+                                        {% elif test_type == "lipid" %}
+                                            {% if result[0] == 'total_cholesterol' %}125-200 mg/dL
+                                            {% elif result[0] == 'hdl' %}40-60 mg/dL
+                                            {% elif result[0] == 'ldl' %}0-100 mg/dL
+                                            {% elif result[0] == 'triglycerides' %}0-150 mg/dL
+                                            {% elif result[0] == 'vldl' %}0-30 mg/dL
+                                            {% elif result[0] == 'cardiac_ratio' %}3.0-5.0
+                                            {% else %}Standard range{% endif %}
+                                        {% elif test_type == "bp" %}
+                                            {% if result[0] == 'systolic' %}90-120 mmHg
+                                            {% elif result[0] == 'diastolic' %}60-80 mmHg
+                                            {% elif result[0] == 'pulse_rate' %}60-100 bpm
+                                            {% else %}Standard range{% endif %}
+                                        {% elif test_type == "bmi" %}
+                                            {% if result[0] == 'bmi' %}18.5-24.9
+                                            {% else %}Standard range{% endif %}
+                                        {% else %}
+                                            Standard range
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    
+                    <div style="text-align: center; margin: 20px 0;">
+                        <span class="entry-source {% if entry_method == 'machine' %}source-machine{% else %}source-manual{% endif %}">
+                            {% if entry_method == 'machine' %}
+                                🤖 Entered via Machine Simulation
+                            {% else %}
+                                ✍️ Entered Manually
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <p style="margin-top: 20px; color: #666;">
+                        <small>⏰ Results entered on: {{ entry_date if entry_date else 'Unknown date' }}</small>
+                    </p>
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="/lab_patient/{{ patient_id }}" class="btn btn-primary">⬅️ Back to Patient Tests</a>
+                    <a href="/test_timeline/{{ patient_test_id }}" class="btn btn-success">📊 View Timeline</a>
+                </div>
+                
+            {% else %}
+                <!-- Show the entry form (no results exist) -->
+                
+                {% if reference_ranges %}
+                <div class="ref-range-info">
+                    <strong>📊 Reference Ranges:</strong>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;">
+                        <span style="color: #28a745;">🟢 Normal</span>
+                        <span style="color: #ffc107;">🟡 Borderline</span>
+                        <span style="color: #dc3545;">🔴 Critical</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <form method="POST" action="/submit_test/{{ patient_test_id }}" class="test-form">
+                    
+                    {% if test_type == "cbc" %}
+                    <div class="form-group">
+                        <h3>🩸 Complete Blood Count</h3>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">Hemoglobin (g/dL)</span>
+                            <input type="number" step="0.1" name="hemoglobin" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 12.0-17.5</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">WBC (cells/µL)</span>
+                            <input type="number" name="wbc" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 4500-11000</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">RBC (million/µL)</span>
+                            <input type="number" step="0.1" name="rbc" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 4.1-5.9</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">Platelets (cells/µL)</span>
+                            <input type="number" name="platelets" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 150000-450000</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">Hematocrit (%)</span>
+                            <input type="number" step="0.1" name="hematocrit" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 36-50</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">MCV (fL)</span>
+                            <input type="number" name="mcv" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 80-100</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">MCH (pg)</span>
+                            <input type="number" step="0.1" name="mch" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 27-33</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">MCHC (g/dL)</span>
+                            <input type="number" step="0.1" name="mchc" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 32-36</span>
+                        </div>
+                    </div>
+
+                    {% elif test_type == "diabetes" %}
+                    <div class="form-group">
+                        <h3>💉 Diabetes Panel</h3>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">Fasting Glucose (mg/dL)</span>
+                            <input type="number" name="fasting_glucose" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 70-99</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">Postprandial Glucose (mg/dL)</span>
+                            <input type="number" name="postprandial_glucose" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 70-140</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">HbA1c (%)</span>
+                            <input type="number" step="0.1" name="hba1c" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 4.0-5.6</span>
+                        </div>
+                    </div>
+
+                    {% elif test_type == "lipid" %}
+                    <div class="form-group">
+                        <h3>🫀 Lipid Profile</h3>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">Total Cholesterol (mg/dL)</span>
+                            <input type="number" name="total_cholesterol" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 125-200</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">HDL (mg/dL)</span>
+                            <input type="number" name="hdl" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 40-60</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">LDL (mg/dL)</span>
+                            <input type="number" name="ldl" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 0-100</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">Triglycerides (mg/dL)</span>
+                            <input type="number" name="triglycerides" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 0-150</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">VLDL (mg/dL)</span>
+                            <input type="number" name="vldl" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 0-30</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">Cardiac Ratio</span>
+                            <input type="number" step="0.1" name="cardiac_ratio" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 3.0-5.0</span>
+                        </div>
+                    </div>
+
+                    {% elif test_type == "bp" %}
+                    <div class="form-group">
+                        <h3>❤️ Blood Pressure</h3>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">Systolic (mmHg)</span>
+                            <input type="number" name="systolic" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 90-120</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">Diastolic (mmHg)</span>
+                            <input type="number" name="diastolic" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 60-80</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">Pulse Rate (bpm)</span>
+                            <input type="number" name="pulse_rate" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 60-100</span>
+                        </div>
+                    </div>
+
+                    {% elif test_type == "bmi" %}
+                    <div class="form-group">
+                        <h3>⚖️ BMI Analysis</h3>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">Height (m)</span>
+                            <input type="number" step="0.01" name="height" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Enter in meters</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">Weight (kg)</span>
+                            <input type="number" step="0.1" name="weight" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Enter in kg</span>
+                        </div>
+                        
+                        <div class="parameter-row">
+                            <span class="parameter-label">BMI</span>
+                            <input type="number" step="0.1" name="bmi" class="parameter-input" required>
+                            <span class="ref-range ref-normal">Ref: 18.5-24.9</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="helper-text">
+                        * Values will be automatically checked against reference ranges
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary">Submit Test Results</button>
+                        <a href="/lab_patient/{{ patient_id }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Medical Report - Medical Laboratory System{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 30px auto;">
+    <!-- Verification Header -->
+    <div class="header" style="text-align: center; background: linear-gradient(135deg, var(--info), var(--info-dark));">
+        <h1 style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <span style="font-size: 40px;">🔐</span>
+            Verify Medical Report
+        </h1>
+        <p style="color: var(--light-gray); margin-top: 10px;">Manual verification using report ID and SHA-256 hash</p>
+    </div>
+    
+    <!-- Main Verification Card -->
+    <div class="card" style="padding: 40px; border-top: 4px solid var(--info); box-shadow: var(--shadow-lg);">
+        <!-- Icon and Title -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div style="font-size: 80px; color: var(--info); animation: verifyPulse 2s infinite; margin-bottom: 20px;">✓</div>
+            <h2 style="color: var(--primary); margin-bottom: 10px;">Enter Verification Details</h2>
+            <p style="color: var(--gray);">You can find these on your printed report or scan the QR code</p>
+        </div>
+        
+        <!-- Verification Form -->
+        <form method="POST" action="/verify" style="margin-bottom: 20px;">
+            <div class="form-group">
+                <label style="color: var(--primary); font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                    <span style="color: var(--info); font-size: 18px;">📋</span> Report ID
+                </label>
+                <input type="number" name="report_id" 
+                       placeholder="Enter report ID (e.g., 12345)" 
+                       required
+                       style="width: 100%; padding: 12px; border: 2px solid var(--light-gray); border-radius: 8px; font-size: 16px;">
+                <p style="color: var(--gray); font-size: 12px; margin-top: 5px;">
+                    <span style="color: var(--info);">ℹ️</span> The report ID is a 5-6 digit number on your report
+                </p>
+            </div>
+            
+            <div class="form-group">
+                <label style="color: var(--primary); font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                    <span style="color: var(--info); font-size: 18px;">🔑</span> Report Hash
+                </label>
+                <input type="text" name="hash_value" 
+                       placeholder="Enter the 64-character SHA-256 hash" 
+                       required
+                       style="width: 100%; padding: 12px; border: 2px solid var(--light-gray); border-radius: 8px; font-size: 14px; font-family: monospace;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                    <p style="color: var(--gray); font-size: 12px; margin: 0;">
+                        <span style="color: var(--info);">ℹ️</span> 64-character hexadecimal string
+                    </p>
+                    <span class="badge badge-info" style="font-size: 11px;">SHA-256</span>
+                </div>
+            </div>
+            
+            <!-- Hash Format Example -->
+            <div style="background: var(--light-gray); padding: 10px; border-radius: 5px; margin: 15px 0; font-family: monospace; font-size: 11px; word-break: break-all;">
+                <span style="color: var(--gray);">Example: </span>
+                <span style="color: var(--primary);">a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6</span>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div style="display: flex; gap: 10px; margin: 20px 0;">
+                <button type="button" onclick="pasteHash()" class="btn btn-secondary" style="flex: 1;">
+                    📋 Paste Hash
+                </button>
+                <button type="button" onclick="clearForm()" class="btn btn-secondary" style="flex: 1;">
+                    🧹 Clear
+                </button>
+                <button type="button" onclick="fillExampleHash()" class="btn btn-info" style="flex: 1;">
+                    📝 Fill Example
+                </button>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" 
+                    style="width: 100%; padding: 15px; font-size: 18px; background: linear-gradient(135deg, var(--info), var(--info-dark)); display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <span>✓</span> Verify Report Authenticity
+            </button>
+        </form>
+        
+        <!-- QR Code Alternative -->
+        <div style="margin: 30px 0; padding: 20px; background: linear-gradient(135deg, var(--light-gray) 0%, white 100%); border-radius: 10px;">
+            <h4 style="color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 24px;">📱</span> Quick QR Verification
+            </h4>
+            
+            <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <div style="background: white; padding: 15px; border-radius: 10px; box-shadow: var(--shadow-sm);">
+                    <div style="font-size: 80px; text-align: center;">📱</div>
+                </div>
+                
+                <div style="flex: 1;">
+                    <p style="color: var(--gray); margin-bottom: 10px;">For faster verification:</p>
+                    <ol style="color: var(--dark); margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 5px;">Open your phone's camera</li>
+                        <li style="margin-bottom: 5px;">Scan the QR code on your report</li>
+                        <li style="margin-bottom: 5px;">Instant verification result</li>
+                    </ol>
+                    <a href="/patient_portal" class="btn btn-info btn-sm" style="margin-top: 10px;">
+                        Go to QR Scanner
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation Buttons -->
+        <div style="display: flex; gap: 15px; margin-top: 20px;">
+            <a href="/patient_portal" class="btn btn-success" style="flex: 1; padding: 12px;">
+                <span style="margin-right: 5px;">🏥</span> Patient Portal
+            </a>
+            <a href="/" class="btn btn-secondary" style="flex: 1; padding: 12px;">
+                <span style="margin-right: 5px;">🏠</span> Home
+            </a>
+        </div>
+        
+        <!-- Security Information -->
+        <div class="alert alert-info" style="margin-top: 25px; background: linear-gradient(135deg, #d1ecf1, white);">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="font-size: 32px;">🔒</div>
+                <div>
+                    <strong style="color: var(--info-dark); display: block; margin-bottom: 5px;">Blockchain Security</strong>
+                    <p style="font-size: 13px; color: var(--gray); margin: 0;">
+                        Each report is secured with SHA-256 encryption and stored on our blockchain network. 
+                        Verification ensures the report hasn't been tampered with since generation.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Help Section -->
+        <details style="margin-top: 20px;">
+            <summary style="color: var(--accent); cursor: pointer; font-weight: 600;">
+                ❓ Need help finding your hash?
+            </summary>
+            <div style="margin-top: 15px; padding: 15px; background: var(--light-gray); border-radius: 8px;">
+                <p style="color: var(--dark); margin-bottom: 10px;">The hash can be found in several places:</p>
+                <ul style="color: var(--gray); font-size: 14px; margin: 0; padding-left: 20px;">
+                    <li style="margin-bottom: 5px;">On your printed report, near the QR code</li>
+                    <li style="margin-bottom: 5px;">In the email notification you received</li>
+                    <li style="margin-bottom: 5px;">On the report success page after generation</li>
+                    <li>By scanning the QR code on your report</li>
+                </ul>
+            </div>
+        </details>
+    </div>
+    
+    <!-- Footer -->
+    <div style="text-align: center; margin-top: 20px; color: var(--gray); font-size: 12px;">
+        <p>
+            <span style="color: var(--info);">🔐</span> SHA-256 Verification | 
+            <span style="color: var(--success);">✓</span> Blockchain Secured |
+            <span style="color: var(--accent);">📱</span> QR Compatible
+        </p>
+    </div>
+</div>
+
+<style>
+    @keyframes verifyPulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    
+    input:focus {
+        border-color: var(--info) !important;
+        box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.1);
+        outline: none;
+    }
+    
+    details summary {
+        list-style: none;
+    }
+    
+    details summary::-webkit-details-marker {
+        display: none;
+    }
+    
+    details[open] summary {
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Paste hash from clipboard
+    function pasteHash() {
+        navigator.clipboard.readText().then(function(text) {
+            const hashInput = document.querySelector('input[name="hash_value"]');
+            if (hashInput && text) {
+                hashInput.value = text;
+                // Highlight the input
+                hashInput.style.borderColor = 'var(--success)';
+                setTimeout(function() {
+                    hashInput.style.borderColor = 'var(--light-gray)';
+                }, 2000);
+            }
+        }).catch(function(err) {
+            alert('Unable to paste. Please type or paste manually.');
+        });
+    }
+    
+    // Clear form
+    function clearForm() {
+        document.querySelector('input[name="report_id"]').value = '';
+        document.querySelector('input[name="hash_value"]').value = '';
+    }
+    
+    // Fill with example hash for demo purposes
+    function fillExampleHash() {
+        const reportInput = document.querySelector('input[name="report_id"]');
+        const hashInput = document.querySelector('input[name="hash_value"]');
+        
+        // Set example values
+        reportInput.value = '1';
+        hashInput.value = 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6';
+        
+        // Highlight the inputs
+        reportInput.style.borderColor = 'var(--success)';
+        hashInput.style.borderColor = 'var(--success)';
+        
+        setTimeout(function() {
+            reportInput.style.borderColor = 'var(--light-gray)';
+            hashInput.style.borderColor = 'var(--light-gray)';
+        }, 2000);
+    }
+    
+    // Validate hash format
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const hashInput = document.querySelector('input[name="hash_value"]');
+        const hash = hashInput.value.trim();
+        
+        // Check if hash is 64 characters and hexadecimal
+        const isHex = /^[0-9a-fA-F]+$/.test(hash);
+        const isValidLength = hash.length === 64;
+        
+        if (!isValidLength || !isHex) {
+            e.preventDefault();
+            alert('Please enter a valid 64-character SHA-256 hash (hexadecimal only)');
+            hashInput.style.borderColor = 'var(--danger)';
+        }
+    });
+    
+    // Auto-format report ID
+    const reportInput = document.querySelector('input[name="report_id"]');
+    if (reportInput) {
+        reportInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value.length > 6) {
+                this.value = this.value.slice(0, 6);
+            }
+        });
+    }
+</script>
+{% endblock %}

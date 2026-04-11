@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registration Successful</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .success-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .success-icon {
+            font-size: 80px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #28a745;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .info-box {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        .info-value {
+            color: #2d3748;
+            font-weight: 500;
+        }
+        
+        .test-table {
+            width: 100%;
+            margin: 15px 0;
+            border-collapse: collapse;
+        }
+        
+        .test-table th {
+            text-align: left;
+            padding: 10px;
+            background: #667eea;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .test-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .test-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .test-table tr:hover {
+            background: #f1f5f9;
+        }
+        
+        .total-row {
+            font-weight: bold;
+            background: #e2e8f0;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-warning {
+            background: #ffc107;
+            color: black;
+        }
+        
+        .badge-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .badge-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .priority-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .priority-Normal {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .priority-Urgent {
+            background: #ffc107;
+            color: black;
+        }
+        
+        .priority-STAT {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #138496;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .print-section {
+            background: #e7f5ff;
+            border-left: 4px solid #007bff;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        
+        /* Test name mapping styles */
+        .test-name-display {
+            text-transform: capitalize;
+        }
+        
+        @media print {
+            .no-print {
+                display: none;
+            }
+            body {
+                background: white;
+            }
+            .success-card {
+                box-shadow: none;
+                padding: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .success-card {
+                padding: 30px 20px;
+            }
+            
+            .info-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+            
+            .test-table {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="success-card">
+        <div class="success-icon">✅</div>
+        <h1>Patient Registered Successfully!</h1>
+        <div class="subtitle">The patient has been added to the system</div>
+        
+        <div class="info-box">
+            <div class="info-row">
+                <span class="info-label">Patient ID:</span>
+                <span class="info-value"><strong>#{{ patient_id }}</strong></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Patient Name:</span>
+                <span class="info-value">{{ patient_name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Priority:</span>
+                <span class="info-value">
+                    <span class="priority-badge priority-{{ priority }}">{{ priority }}</span>
+                </span>
+            </div>
+        </div>
+        
+        <!-- Test-wise Bill Breakdown - Dynamic from server -->
+        <h3 style="margin-bottom: 15px; color: #333;">🧾 Bill Details</h3>
+        
+        <table class="test-table">
+            <thead>
+                <tr>
+                    <th>Test Name</th>
+                    <th>Price (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set test_names = {
+                    'cbc': 'Complete Blood Count',
+                    'hemoglobin': 'Hemoglobin', 
+                    'wbc_count': 'WBC Count',
+                    'platelet_count': 'Platelet Count',
+                    'esr': 'ESR',
+                    'peripheral_smear': 'Peripheral Smear',
+                    'blood_group': 'Blood Group',
+                    'fasting_glucose': 'Fasting Glucose',
+                    'postprandial_glucose': 'Postprandial Glucose',
+                    'random_glucose': 'Random Glucose',
+                    'hba1c': 'HbA1c',
+                    'gtt': 'Glucose Tolerance Test',
+                    'lipid_profile': 'Lipid Profile',
+                    'total_cholesterol': 'Total Cholesterol',
+                    'hdl': 'HDL Cholesterol',
+                    'ldl': 'LDL Cholesterol',
+                    'triglycerides': 'Triglycerides',
+                    'vldl': 'VLDL',
+                    'lft': 'Liver Function Test',
+                    'sgpt_alt': 'SGPT/ALT',
+                    'sgot_ast': 'SGOT/AST',
+                    'alkaline_phosphatase': 'Alkaline Phosphatase',
+                    'total_bilirubin': 'Total Bilirubin',
+                    'direct_bilirubin': 'Direct Bilirubin',
+                    'total_protein': 'Total Protein',
+                    'albumin': 'Albumin',
+                    'globulin': 'Globulin',
+                    'ag_ratio': 'A/G Ratio',
+                    'kft': 'Kidney Function Test',
+                    'blood_urea': 'Blood Urea',
+                    'serum_creatinine': 'Serum Creatinine',
+                    'uric_acid': 'Uric Acid',
+                    'sodium': 'Sodium',
+                    'potassium': 'Potassium',
+                    'chloride': 'Chloride',
+                    'tsh': 'TSH',
+                    't3': 'T3',
+                    't4': 'T4',
+                    'ft3': 'Free T3',
+                    'ft4': 'Free T4',
+                    'troponin_i': 'Troponin I',
+                    'troponin_t': 'Troponin T',
+                    'ck_mb': 'CK-MB',
+                    'ck_total': 'CK Total',
+                    'ldh': 'LDH',
+                    'vitamin_d': 'Vitamin D',
+                    'vitamin_b12': 'Vitamin B12',
+                    'iron_studies': 'Iron Studies',
+                    'ferritin': 'Ferritin',
+                    'crp': 'CRP',
+                    'rheumatoid_factor': 'Rheumatoid Factor',
+                    'urine_routine': 'Urine Routine',
+                    'urine_culture': 'Urine Culture',
+                    'microalbumin': 'Microalbumin',
+                    'blood_culture': 'Blood Culture',
+                    'widal': 'Widal Test',
+                    'dengue_ns1': 'Dengue NS1',
+                    'dengue_igg_igm': 'Dengue IgG/IgM',
+                    'malaria': 'Malaria',
+                    'typhoid': 'Typhoid',
+                    'bp': 'Blood Pressure',
+                    'bmi': 'BMI'
+                } %}
+                
+                {% for test_id, price in tests %}
+                <tr>
+                    <td class="test-name-display">{{ test_names.get(test_id, test_id.replace('_', ' ').title()) }}</td>
+                    <td>₹{{ price }}</td>
+                </tr>
+                {% endfor %}
+                
+                <tr class="total-row">
+                    <td><strong>Total Amount</strong></td>
+                    <td><strong>₹{{ "%.2f"|format(total_amount) }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Amount Paid</td>
+                    <td>₹{{ "%.2f"|format(amount_paid) }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Balance Due</strong></td>
+                    <td><strong>₹{{ "%.2f"|format(total_amount - amount_paid) }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Payment Mode</td>
+                    <td>
+                        {% if payment_mode == 'cash' %}💵 Cash
+                        {% elif payment_mode == 'card' %}💳 Card
+                        {% elif payment_mode == 'upi' %}📱 UPI
+                        {% else %}{{ payment_mode }}{% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+        {% if total_amount > amount_paid %}
+        <div class="alert-warning">
+            <strong>⚠️ Partial Payment</strong><br>
+            Balance amount of ₹{{ "%.2f"|format(total_amount - amount_paid) }} is due. 
+            Please collect the remaining amount.
+        </div>
+        {% elif total_amount == amount_paid %}
+        <div class="alert-success">
+            <strong>✅ Payment Complete</strong><br>
+            Full payment of ₹{{ "%.2f"|format(amount_paid) }} received. Thank you!
+        </div>
+        {% endif %}
+        
+        <div class="print-section">
+            <h4>📋 Next Steps:</h4>
+            <ol style="margin-left: 20px; color: #2d3748;">
+                <li>Give the Patient ID and Receipt to the patient</li>
+                <li>Patient can use this ID to check test status</li>
+                <li>Lab technicians will process the tests</li>
+                <li>Results will be available in the patient portal</li>
+            </ol>
+        </div>
+        
+        <div class="button-group no-print">
+            <a href="/reception_dashboard" class="btn btn-primary">← Back to Dashboard</a>
+            <a href="/onboard" class="btn btn-success">Register Another Patient</a>
+            <button onclick="window.print()" class="btn btn-info">🖨️ Print Receipt</button>
+        </div>
+        
+        <div class="footer">
+            <p>© 2026 Medical Laboratory System | Patient Registration Complete</p>
+        </div>
+    </div>
+</body>
+</html>

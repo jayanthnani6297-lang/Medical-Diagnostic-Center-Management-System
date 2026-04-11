@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Add Diagnosis - Medical Laboratory System{% endblock %}
+
+{% block content %}
+<div class="header" style="background: linear-gradient(135deg, var(--primary), var(--accent-dark));">
+    <div class="flex justify-between">
+        <div>
+            <h1 style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 40px;">👨‍⚕️</span> 
+                Add Diagnosis
+            </h1>
+            <p style="color: var(--light-gray); margin-top: 5px;">Report #{{ report_id }}</p>
+        </div>
+        <a href="/doctor_dashboard" class="btn btn-secondary" style="background: rgba(255,255,255,0.2); color: white; border: none;">
+            ← Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="grid-2" style="gap: 30px; margin-top: 20px;">
+    <!-- Main Diagnosis Form -->
+    <div class="card" style="grid-column: span 2; max-width: 1000px; margin: 0 auto; width: 100%;">
+        <!-- Patient Information Summary -->
+        <div style="background: linear-gradient(135deg, var(--light-gray) 0%, white 100%); padding: 20px; border-radius: 10px; margin-bottom: 25px;">
+            <h3 style="color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 24px;">📋</span> Patient Information
+            </h3>
+            
+            <div class="grid-3" style="gap: 20px;">
+                <div>
+                    <div style="color: var(--gray); font-size: 12px; text-transform: uppercase;">Report ID</div>
+                    <div style="font-weight: bold; color: var(--primary); font-size: 18px;">#{{ report_id }}</div>
+                </div>
+                
+                {% if patient_name %}
+                <div>
+                    <div style="color: var(--gray); font-size: 12px; text-transform: uppercase;">Patient Name</div>
+                    <div style="font-weight: bold; color: var(--primary); font-size: 18px;">{{ patient_name }}</div>
+                </div>
+                {% endif %}
+                
+                {% if risk_score %}
+                <div>
+                    <div style="color: var(--gray); font-size: 12px; text-transform: uppercase;">Risk Score</div>
+                    <div>
+                        {% if risk_score >= 70 %}
+                            <span class="badge badge-stat" style="font-size: 16px; padding: 5px 15px;">{{ risk_score }}</span>
+                        {% elif risk_score >= 40 %}
+                            <span class="badge badge-urgent" style="font-size: 16px; padding: 5px 15px;">{{ risk_score }}</span>
+                        {% else %}
+                            <span class="badge badge-normal" style="font-size: 16px; padding: 5px 15px;">{{ risk_score }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- ML Prediction Section - Enhanced -->
+            {% if ml_prediction %}
+            <div style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #f0f9ff, white); border-radius: 10px; border-left: 4px solid var(--accent);">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <span style="font-size: 28px;">🤖</span>
+                    <strong style="color: var(--primary); font-size: 18px;">ML Model Prediction</strong>
+                    <span class="badge badge-info">AI Assisted</span>
+                </div>
+                
+                <div class="grid-2" style="gap: 20px;">
+                    <div>
+                        <p style="color: var(--gray); margin-bottom: 5px;">Primary Prediction</p>
+                        <h3 style="margin: 0; color: var(--primary);">{{ ml_prediction.diagnosis }}</h3>
+                        <div class="progress" style="height: 10px; margin: 10px 0; width: 80%;">
+                            <div class="progress-bar" style="width: {{ ml_prediction.confidence }}%; 
+                                background: {% if ml_prediction.confidence > 70 %}var(--success){% elif ml_prediction.confidence > 40 %}var(--warning){% else %}var(--info){% endif %};">
+                            </div>
+                        </div>
+                        <p style="color: var(--gray); font-size: 13px;">Confidence: {{ ml_prediction.confidence }}%</p>
+                    </div>
+                    <div>
+                        <p style="color: var(--gray); margin-bottom: 5px;">Top Alternatives</p>
+                        {% if ml_prediction.top_predictions %}
+                            {% for alt in ml_prediction.top_predictions[:3] %}
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>{{ alt.disease }}</span>
+                                <span style="font-weight: bold; color: var(--accent);">{{ "%.1f"|format(alt.probability * 100) }}%</span>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p style="color: var(--gray);">No alternatives</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <p style="font-size: 12px; color: var(--gray); margin-top: 10px;">
+                    <i>This is an AI-generated suggestion. Please use your clinical judgment.</i>
+                </p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <form method="POST" action="/submit_diagnosis/{{ report_id }}" id="diagnosisForm">
+            <div class="form-group">
+                <label style="color: var(--primary); font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 20px;">📝</span> Diagnosis / Clinical Notes
+                </label>
+                <textarea name="diagnosis" rows="8" required 
+                          placeholder="Enter your diagnosis, observations, and recommendations..."
+                          style="width: 100%; padding: 15px; border: 2px solid var(--light-gray); border-radius: 8px; font-size: 15px; line-height: 1.6;"></textarea>
+                <p style="color: var(--gray); font-size: 12px; margin-top: 5px;">
+                    <span style="color: var(--accent);">ℹ️</span> Include detailed observations, test interpretations, and recommended follow-up actions.
+                </p>
+            </div>
+            
+            <div class="form-group">
+                <label style="color: var(--primary); font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 20px;">⚖️</span> Override Reason 
+                    <span style="color: var(--gray); font-weight: normal; font-size: 13px;">(if disagreeing with AI)</span>
+                </label>
+                <input type="text" name="override_reason" 
+                       placeholder="e.g., Patient history suggests different diagnosis, Test results inconsistent..."
+                       style="width: 100%; padding: 12px; border: 2px solid var(--light-gray); border-radius: 8px; font-size: 15px;">
+            </div>
+            
+            <!-- Test Results Summary -->
+            {% if test_results %}
+            <div style="margin: 25px 0; padding: 15px; background: var(--light-gray); border-radius: 8px;">
+                <h4 style="color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 18px;">🔬</span> Test Results
+                </h4>
+                <div style="overflow-x: auto;">
+                    <table style="background: transparent;">
+                        <thead>
+                            <tr>
+                                <th>Test</th>
+                                <th>Result</th>
+                                <th>Reference Range</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for test in test_results %}
+                            <tr>
+                                <td>{{ test.name }}</td>
+                                <td><strong>{{ test.value }}</strong></td>
+                                <td style="color: var(--gray);">{{ test.range if test.range else 'Standard' }}</td>
+                                <td>
+                                    {% if test.flag and 'Critical' in test.flag %}
+                                        <span class="badge badge-stat">Critical</span>
+                                    {% elif test.flag and ('High' in test.flag or 'Low' in test.flag) %}
+                                        <span class="badge badge-urgent">{{ test.flag }}</span>
+                                    {% elif test.flag and 'Normal' in test.flag %}
+                                        <span class="badge badge-success">Normal</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">Unknown</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Action Buttons -->
+            <div class="flex justify-center" style="gap: 15px; margin-top: 30px;">
+                <button type="submit" class="btn btn-success" style="padding: 12px 30px; font-size: 16px;">
+                    <span style="margin-right: 8px;">✓</span> Submit Diagnosis
+                </button>
+                <a href="/doctor_dashboard" class="btn btn-secondary" style="padding: 12px 30px; font-size: 16px;">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Quick Reference Guide -->
+<div class="card" style="margin-top: 30px; background: linear-gradient(135deg, var(--light-gray), white);">
+    <h3 style="color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 24px;">📚</span> Clinical Guidelines
+    </h3>
+    
+    <div class="grid-3" style="gap: 20px;">
+        <div>
+            <h4 style="color: var(--accent); margin-bottom: 10px;">Risk Interpretation</h4>
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 5px;"><span class="badge badge-stat" style="margin-right: 5px;">≥70</span> Critical - Immediate attention required</li>
+                <li style="margin-bottom: 5px;"><span class="badge badge-urgent" style="margin-right: 5px;">40-69</span> High - Review within 24 hours</li>
+                <li style="margin-bottom: 5px;"><span class="badge badge-warning" style="margin-right: 5px;">20-39</span> Moderate - Standard follow-up</li>
+                <li style="margin-bottom: 5px;"><span class="badge badge-normal" style="margin-right: 5px;">&lt;20</span> Low - Routine monitoring</li>
+            </ul>
+        </div>
+        
+        <div>
+            <h4 style="color: var(--accent); margin-bottom: 10px;">Diagnosis Tips</h4>
+            <ul style="color: var(--gray); padding-left: 20px;">
+                <li style="margin-bottom: 5px;">Consider patient history</li>
+                <li style="margin-bottom: 5px;">Review all test results</li>
+                <li style="margin-bottom: 5px;">Note any abnormal values</li>
+                <li style="margin-bottom: 5px;">Include treatment plan</li>
+                <li style="margin-bottom: 5px;">ML predictions are assistive only</li>
+            </ul>
+        </div>
+        
+        <div>
+            <h4 style="color: var(--accent); margin-bottom: 10px;">Required Fields</h4>
+            <ul style="color: var(--gray); padding-left: 20px;">
+                <li style="margin-bottom: 5px;">✓ Primary diagnosis</li>
+                <li style="margin-bottom: 5px;">✓ Clinical observations</li>
+                <li style="margin-bottom: 5px;">✓ Recommended actions</li>
+                <li style="margin-bottom: 5px;">✓ Follow-up schedule</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-resize textarea
+    const textarea = document.querySelector('textarea[name="diagnosis"]');
+    if (textarea) {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    }
+    
+    // Warn before leaving with unsaved changes
+    let formChanged = false;
+    const form = document.querySelector('#diagnosisForm');
+    const diagnosisInput = document.querySelector('textarea[name="diagnosis"]');
+    const overrideInput = document.querySelector('input[name="override_reason"]');
+    
+    if (diagnosisInput) {
+        diagnosisInput.addEventListener('input', function() {
+            formChanged = true;
+        });
+    }
+    
+    if (overrideInput) {
+        overrideInput.addEventListener('input', function() {
+            formChanged = true;
+        });
+    }
+    
+    window.addEventListener('beforeunload', function(e) {
+        if (formChanged) {
+            e.preventDefault();
+            e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        }
+    });
+    
+    form.addEventListener('submit', function() {
+        formChanged = false;
+    });
+
+    // Add character counter
+    if (diagnosisInput) {
+        const counter = document.createElement('div');
+        counter.style.cssText = 'text-align: right; font-size: 12px; color: var(--gray); margin-top: 5px;';
+        diagnosisInput.parentNode.appendChild(counter);
+        
+        diagnosisInput.addEventListener('input', function() {
+            const chars = this.value.length;
+            counter.textContent = `${chars} characters`;
+        });
+    }
+</script>
+{% endblock %}

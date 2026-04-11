@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Receipt{% endblock %}
+
+{% block content %}
+<div class="header" style="background: linear-gradient(135deg, var(--success), var(--success-dark));">
+    <h1>🧾 Payment Receipt</h1>
+    <p>Payment successful for additional test</p>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <div style="font-size: 64px; color: var(--success);">✅</div>
+        <h2>Payment Received</h2>
+        <p style="color: var(--gray);">Receipt #{{ receipt.receipt_number }}</p>
+    </div>
+    
+    <table style="width: 100%; margin-bottom: 30px;">
+        <tr>
+            <td><strong>Date:</strong></td>
+            <td>{{ receipt.date }}</td>
+        </tr>
+        <tr>
+            <td><strong>Patient:</strong></td>
+            <td>{{ receipt.patient_name }} (ID: #{{ receipt.patient_id }})</td>
+        </tr>
+        <tr>
+            <td><strong>Test:</strong></td>
+            <td>{{ receipt.test_type|upper }}</td>
+        </tr>
+        <tr>
+            <td><strong>Amount:</strong></td>
+            <td>₹{{ receipt.amount }}</td>
+        </tr>
+        <tr>
+            <td><strong>Payment Mode:</strong></td>
+            <td>{{ receipt.payment_mode|upper }}</td>
+        </tr>
+        <tr>
+            <td><strong>Collected By:</strong></td>
+            <td>{{ receipt.collected_by }}</td>
+        </tr>
+    </table>
+    
+    <div style="text-align: center; margin: 30px 0;">
+        <button onclick="window.print()" class="btn btn-info">🖨️ Print Receipt</button>
+    </div>
+    
+    <div style="display: flex; gap: 15px; justify-content: center;">
+        <a href="/patient/{{ patient_id }}" class="btn btn-primary">← Back to Patient</a>
+        <a href="/order_test/{{ patient_id }}" class="btn btn-success">➕ Order Another Test</a>
+    </div>
+</div>
+{% endblock %}

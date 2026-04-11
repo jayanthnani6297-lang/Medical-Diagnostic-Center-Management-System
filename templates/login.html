@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Medical Laboratory System{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 50px auto;">
+    <div class="card" style="padding: 40px; border-top: 4px solid var(--accent); box-shadow: var(--shadow-lg);">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div style="font-size: 64px; margin-bottom: 10px; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block;">🔬</div>
+            <h2 style="color: var(--primary); margin: 10px 0 5px 0; font-size: 28px;">Medical Laboratory</h2>
+            <h3 style="color: var(--gray); font-weight: normal; margin: 0; font-size: 18px;">System Login</h3>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" style="margin-bottom: 20px; animation: slideIn 0.3s ease;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="/login">
+            <div class="form-group">
+                <label style="color: var(--primary); font-weight: 600; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <span style="color: var(--accent); font-size: 18px;">👤</span> Username
+                </label>
+                <input type="text" name="username" required 
+                       placeholder="Enter your username" 
+                       autofocus
+                       style="width: 100%;
+                              padding: 12px 15px;
+                              border: 2px solid var(--light-gray);
+                              border-radius: 8px;
+                              font-size: 16px;
+                              transition: all 0.3s;
+                              background: var(--white);">
+            </div>
+
+            <div class="form-group">
+                <label style="color: var(--primary); font-weight: 600; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <span style="color: var(--accent); font-size: 18px;">🔒</span> Password
+                </label>
+                <input type="password" name="password" required 
+                       placeholder="Enter your password"
+                       style="width: 100%;
+                              padding: 12px 15px;
+                              border: 2px solid var(--light-gray);
+                              border-radius: 8px;
+                              font-size: 16px;
+                              transition: all 0.3s;
+                              background: var(--white);">
+            </div>
+
+            <button type="submit" class="btn btn-primary" 
+                    style="width: 100%;
+                           padding: 14px;
+                           font-size: 16px;
+                           font-weight: 600;
+                           background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+                           border: none;
+                           border-radius: 8px;
+                           color: white;
+                           cursor: pointer;
+                           transition: all 0.3s;
+                           margin-top: 10px;
+                           display: flex;
+                           align-items: center;
+                           justify-content: center;
+                           gap: 10px;">
+                <span>🔑</span> Login
+            </button>
+        </form>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid var(--light-gray);">
+            <p style="color: var(--gray); text-align: center; margin-bottom: 10px; font-weight: 600;">Demo Credentials</p>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                <div style="background: var(--light-gray); padding: 10px; border-radius: 8px; text-align: center;">
+                    <span style="color: var(--primary); font-weight: 600;">admin</span>
+                    <span style="color: var(--gray); display: block; font-size: 12px;">Administrator</span>
+                    <span style="color: var(--accent); font-weight: 600; font-size: 14px;">/ 1234</span>
+                </div>
+                <div style="background: var(--light-gray); padding: 10px; border-radius: 8px; text-align: center;">
+                    <span style="color: var(--primary); font-weight: 600;">reception</span>
+                    <span style="color: var(--gray); display: block; font-size: 12px;">Receptionist</span>
+                    <span style="color: var(--accent); font-weight: 600; font-size: 14px;">/ 1234</span>
+                </div>
+                <div style="background: var(--light-gray); padding: 10px; border-radius: 8px; text-align: center;">
+                    <span style="color: var(--primary); font-weight: 600;">lab</span>
+                    <span style="color: var(--gray); display: block; font-size: 12px;">Lab Technician</span>
+                    <span style="color: var(--accent); font-weight: 600; font-size: 14px;">/ 1234</span>
+                </div>
+                <div style="background: var(--light-gray); padding: 10px; border-radius: 8px; text-align: center;">
+                    <span style="color: var(--primary); font-weight: 600;">doctor</span>
+                    <span style="color: var(--gray); display: block; font-size: 12px;">Physician</span>
+                    <span style="color: var(--accent); font-weight: 600; font-size: 14px;">/ 1234</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; text-align: center;">
+            <p style="color: var(--gray); font-size: 12px;">
+                <span style="color: var(--accent);">🔐</span> Secure Laboratory Information System
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Additional animations */
+    @keyframes slideIn {
+        from {
+            transform: translateY(-10px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* Input focus styles using CSS variables */
+    input:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        outline: none;
+    }
+
+    /* Button hover effect */
+    button.btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        background: linear-gradient(135deg, var(--accent-dark), var(--accent)) !important;
+    }
+
+    /* Credential card hover effect */
+    .credential-card {
+        transition: all 0.3s;
+    }
+    
+    .credential-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+        background: white !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-hide flash messages after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            setTimeout(function() {
+                alert.style.transition = 'opacity 0.5s';
+                alert.style.opacity = '0';
+                setTimeout(function() {
+                    alert.style.display = 'none';
+                }, 500);
+            }, 5000);
+        });
+
+        // Add animation to credential cards on hover
+        const credentialCards = document.querySelectorAll('[style*="background: var(--light-gray)"]');
+        credentialCards.forEach(function(card) {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = 'var(--shadow-sm)';
+                this.style.background = 'white';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'none';
+                this.style.background = 'var(--light-gray)';
+            });
+        });
+    });
+</script>
+{% endblock %}

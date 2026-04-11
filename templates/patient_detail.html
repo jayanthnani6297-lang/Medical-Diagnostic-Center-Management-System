@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Details - Medical Laboratory System{% endblock %}
+
+{% block content %}
+<div class="header" style="background: linear-gradient(135deg, var(--primary), var(--accent-dark));">
+    <div class="flex justify-between">
+        <div>
+            <h1 style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 36px;">👤</span>
+                Patient Details
+            </h1>
+            <p style="color: var(--light-gray); margin-top: 5px;">
+                View patient information and test history
+            </p>
+        </div>
+        <div>
+            <a href="/patients" class="btn btn-secondary" style="margin-right: 10px;">← Back to Patients</a>
+            <a href="/order_test/{{ patient[0] }}" class="btn btn-success">➕ Order Test</a>
+        </div>
+    </div>
+</div>
+
+<!-- Patient Information Card -->
+<div class="grid-2" style="gap: 30px; margin-bottom: 30px;">
+    <div class="card">
+        <h3 style="color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 24px;">📋</span> Patient Information
+        </h3>
+        
+        <table style="width: 100%;">
+            <tr>
+                <td style="width: 150px; color: var(--gray);">Patient ID:</td>
+                <td><strong>#{{ patient[0] }}</strong></td>
+            </tr>
+            <tr>
+                <td style="color: var(--gray);">Full Name:</td>
+                <td><strong>{{ patient[1] }}</strong></td>
+            </tr>
+            <tr>
+                <td style="color: var(--gray);">Age:</td>
+                <td>{{ patient[2] }}</td>
+            </tr>
+            <tr>
+                <td style="color: var(--gray);">Gender:</td>
+                <td>
+                    {% if patient[3] == 'Male' %}
+                        <span class="badge badge-info">👨 Male</span>
+                    {% elif patient[3] == 'Female' %}
+                        <span class="badge badge-success">👩 Female</span>
+                    {% else %}
+                        <span class="badge badge-secondary">{{ patient[3] }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td style="color: var(--gray);">Contact:</td>
+                <td>{{ patient[4] or 'N/A' }}</td>
+            </tr>
+            <tr>
+                <td style="color: var(--gray);">Email:</td>
+                <td>{{ patient[5] or 'N/A' }}</td>
+            </tr>
+            <tr>
+                <td style="color: var(--gray);">Registered:</td>
+                <td>{{ patient[6] }}</td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- Latest Bill/Receipt Card -->
+    {% if latest_bill %}
+    <div class="card" style="border-left: 4px solid var(--success);">
+        <h3 style="color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 24px;">🧾</span> Latest Payment Receipt
+        </h3>
+        
+        <div style="background: var(--light-gray); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-weight: bold;">Receipt #{{ latest_bill[1] }}</span>
+                <span class="badge badge-success">Paid</span>
+            </div>
+            
+            <table style="width: 100%; margin-bottom: 10px;">
+                <tr>
+                    <td style="color: var(--gray);">Date:</td>
+                    <td>{{ latest_bill[5] }}</td>
+                </tr>
+                <tr>
+                    <td style="color: var(--gray);">Total Amount:</td>
+                    <td><strong>₹{{ "%.2f"|format(latest_bill[2]) }}</strong></td>
+                </tr>
+                <tr>
+                    <td style="color: var(--gray);">Amount Paid:</td>
+                    <td><strong class="text-success">₹{{ "%.2f"|format(latest_bill[3]) }}</strong></td>
+                </tr>
+                <tr>
+                    <td style="color: var(--gray);">Payment Mode:</td>
+                    <td>
+                        {% if latest_bill[4] == 'cash' %}💵 Cash
+                        {% elif latest_bill[4] == 'card' %}💳 Card
+                        {% elif latest_bill[4] == 'upi' %}📱 UPI
+                        {% else %}{{ latest_bill[4] }}{% endif %}
+                    </td>
+                </tr>
+            </table>
+            
+            {% if latest_bill[2] > latest_bill[3] %}
+            <div class="alert alert-warning" style="margin: 10px 0; padding: 10px;">
+                <strong>⚠️ Balance Due:</strong> ₹{{ "%.2f"|format(latest_bill[2] - latest_bill[3]) }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div style="display: flex; gap: 10px;">
+            <button onclick="window.print()" class="btn btn-info btn-sm" style="flex: 1;">
+                🖨️ Print Receipt
+            </button>
+            <button onclick="downloadReceipt()" class="btn btn-secondary btn-sm" style="flex: 1;">
+                📥 Download
+            </button>
+        </div>
+    </div>
+    {% else %}
+    <div class="card" style="border-left: 4px solid var(--warning);">
+        <h3 style="color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 24px;">🧾</span> Billing Information
+        </h3>
+        <div class="alert alert-warning" style="text-align: center;">
+            <p>No billing records found for this patient.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Quick Stats -->
+<div class="grid-3" style="margin-bottom: 30px;">
+    <div class="card text-center">
+        <div style="font-size: 32px; color: var(--info);">📋</div>
+        <div style="font-size: 24px; font-weight: bold;">{{ tests|length }}</div>
+        <div class="text-gray">Total Tests</div>
+    </div>
+    <div class="card text-center">
+        <div style="font-size: 32px; color: var(--success);">✅</div>
+        <div style="font-size: 24px; font-weight: bold;">
+            {{ tests|selectattr('2', 'equalto', 'Completed')|list|length +
+               tests|selectattr('2', 'equalto', 'Verified')|list|length }}
+        </div>
+        <div class="text-gray">Completed</div>
+    </div>
+    <div class="card text-center">
+        <div style="font-size: 32px; color: var(--warning);">⏳</div>
+        <div style="font-size: 24px; font-weight: bold;">
+            {{ tests|selectattr('2', 'equalto', 'Ordered')|list|length +
+               tests|selectattr('2', 'equalto', 'Collected')|list|length +
+               tests|selectattr('2', 'equalto', 'Processing')|list|length }}
+        </div>
+        <div class="text-gray">Pending</div>
+    </div>
+</div>
+
+<!-- Test History -->
+<div class="card">
+    <div class="flex justify-between" style="margin-bottom: 20px;">
+        <h3 style="color: var(--primary);">🔬 Test History</h3>
+        <span class="badge badge-info">{{ tests|length }} total</span>
+    </div>
+    
+    {% if tests %}
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Test ID</th>
+                    <th>Test Type</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                    <th>Collection Date</th>
+                    <th>Results</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for test in tests %}
+                <tr>
+                    <td><strong>#{{ test[0] }}</strong></td>
+                    <td>
+                        {% if test[1] == 'cbc' %}🩸 Complete Blood Count
+                        {% elif test[1] == 'diabetes' %}💉 Diabetes Panel
+                        {% elif test[1] == 'lipid' %}🫀 Lipid Profile
+                        {% elif test[1] == 'bp' %}❤️ Blood Pressure
+                        {% elif test[1] == 'bmi' %}⚖️ BMI
+                        {% elif test[1] == 'lft' %}🧪 Liver Function (LFT)
+                        {% elif test[1] == 'kft' %}💧 Kidney Function (KFT)
+                        {% elif test[1] == 'thyroid' %}🏥 Thyroid
+                        {% elif test[1] == 'vitamin_d' %}☀️ Vitamin D
+                        {% elif test[1] == 'vitamin_b12' %}💊 Vitamin B12
+                        {% else %}{{ test[1]|replace('_', ' ')|title }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <!-- Status badge with black text for Ordered, white for others -->
+                        <span class="badge {% if test[2] == 'Ordered' %}badge-ordered{% else %}badge-{{ test[2]|lower }}{% endif %}" 
+                              {% if test[2] == 'Ordered' %}style="color: black !important; background: #e9ecef;"{% endif %}>
+                            {{ test[2] }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if test[3] == 'STAT' %}
+                            <span class="badge badge-stat">STAT</span>
+                        {% elif test[3] == 'Urgent' %}
+                            <span class="badge badge-urgent">Urgent</span>
+                        {% else %}
+                            <span class="badge badge-normal">Normal</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ test[4] }}</td>
+                    <td>
+                        {% if test[5] > 0 %}
+                            <span class="badge badge-success" style="color: black;">{{ test[5] }} parameters</span>
+                        {% else %}
+                            <span class="badge badge-secondary" style="color: black;">No results</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 5px;">
+                            <a href="/test_timeline/{{ test[0] }}" class="btn btn-info btn-sm">
+                                📊 Timeline
+                            </a>
+                            {% if session.get('role') in ['technician', 'lab'] and test[2] not in ['Completed', 'Verified'] %}
+                            <a href="/enter_test/{{ test[0] }}" class="btn btn-primary btn-sm">
+                                ✍️ Enter
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info" style="text-align: center; padding: 40px;">
+        <div style="font-size: 48px; margin-bottom: 20px;">🔬</div>
+        <h4 style="color: var(--info); margin-bottom: 10px;">No Tests Found</h4>
+        <p style="color: var(--gray);">This patient has no test records.</p>
+        <a href="/order_test/{{ patient[0] }}" class="btn btn-success" style="margin-top: 15px;">
+            ➕ Order First Test
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Quick Actions -->
+<div class="grid-3" style="margin-top: 30px;">
+    <div class="card text-center">
+        <div style="font-size: 32px; color: var(--accent);">📊</div>
+        <h4 style="color: var(--primary); margin: 10px 0;">View Reports</h4>
+        <p style="color: var(--gray); font-size: 13px;">View all generated reports for this patient</p>
+        <a href="/patient_portal/{{ patient[0] }}" class="btn btn-info btn-sm" style="width: 100%;">
+            View Reports
+        </a>
+    </div>
+    
+    <div class="card text-center">
+        <div style="font-size: 32px; color: var(--success);">➕</div>
+        <h4 style="color: var(--primary); margin: 10px 0;">Order Test</h4>
+        <p style="color: var(--gray); font-size: 13px;">Order additional tests for this patient</p>
+        <a href="/order_test/{{ patient[0] }}" class="btn btn-success btn-sm" style="width: 100%;">
+            Order Test
+        </a>
+    </div>
+    
+    <div class="card text-center">
+        <div style="font-size: 32px; color: var(--warning);">📝</div>
+        <h4 style="color: var(--primary); margin: 10px 0;">Update Info</h4>
+        <p style="color: var(--gray); font-size: 13px;">Update patient contact information</p>
+        <button onclick="alert('Update feature coming soon!')" class="btn btn-warning btn-sm" style="width: 100%;">
+            Update Info
+        </button>
+    </div>
+</div>
+
+<script>
+    function downloadReceipt() {
+        // Create a simple text receipt for download
+        const receiptText = `
+MEDICAL LABORATORY SYSTEM - PAYMENT RECEIPT
+===========================================
+Receipt No: {{ latest_bill[1] if latest_bill else 'N/A' }}
+Date: {{ latest_bill[5] if latest_bill else 'N/A' }}
+Patient: {{ patient[1] }} (ID: #{{ patient[0] }})
+-------------------------------------------
+Total Amount: ₹{{ "%.2f"|format(latest_bill[2]) if latest_bill else '0' }}
+Amount Paid: ₹{{ "%.2f"|format(latest_bill[3]) if latest_bill else '0' }}
+Payment Mode: {{ latest_bill[4]|upper if latest_bill else 'N/A' }}
+-------------------------------------------
+Thank you for choosing our services.
+This is a computer-generated receipt.
+        `;
+        
+        const blob = new Blob([receiptText], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `receipt_{{ latest_bill[1] if latest_bill else '0000' }}.txt`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+</script>
+
+<style>
+    @media print {
+        .btn, .header .btn, .grid-3 .card, [onclick] {
+            display: none !important;
+        }
+        
+        .card {
+            box-shadow: none;
+            border: 1px solid #ddd;
+            break-inside: avoid;
+        }
+        
+        body {
+            background: white;
+            padding: 10px;
+        }
+    }
+</style>
+{% endblock %}

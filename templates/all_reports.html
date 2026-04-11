@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}All Reports{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>📋 All Reports</h1>
+    <a href="/doctor_dashboard" class="btn btn-secondary">← Back to Dashboard</a>
+</div>
+
+<div class="card">
+    <h3>Generated Reports ({{ reports|length }})</h3>
+    {% if reports %}
+    <table>
+        <thead>
+            <tr>
+                <th>Report ID</th>
+                <th>Patient</th>
+                <th>Risk Score</th>
+                <th>Risk Level</th>
+                <th>Diagnosis</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for report in reports %}
+            <tr>
+                <td>#{{ report[0] }}</td>
+                <td><strong>{{ report[1] }}</strong></td>
+                <td>
+                    {% if report[2] >= 70 %}
+                        <span class="badge badge-stat">{{ report[2] }}</span>
+                    {% elif report[2] >= 40 %}
+                        <span class="badge badge-urgent">{{ report[2] }}</span>
+                    {% elif report[2] >= 20 %}
+                        <span class="badge badge-warning">{{ report[2] }}</span>
+                    {% else %}
+                        <span class="badge badge-normal">{{ report[2] }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if report[2] >= 70 %}Critical
+                    {% elif report[2] >= 40 %}High
+                    {% elif report[2] >= 20 %}Moderate
+                    {% else %}Low{% endif %}
+                </td>
+                <td>{{ report[3] or 'Pending' }}</td>
+                <td>{{ report[4] }}</td>
+                <td>
+                    <a href="/patient_portal/{{ report[0] }}" class="btn btn-sm btn-primary">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info" style="text-align: center; padding: 40px;">
+        <p>No reports have been generated yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

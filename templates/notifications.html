@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verification Result</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .result-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .icon { font-size: 80px; text-align: center; margin-bottom: 20px; }
+        .info-box {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-secondary { background: #e2e8f0; color: #4a5568; }
+    </style>
+</head>
+<body>
+    <div class="result-card">
+        {% if success %}
+            <div class="icon success">✅</div>
+            <h1 style="color: #10b981; text-align: center;">Verification Successful!</h1>
+            <div class="info-box">
+                <div class="info-row"><span>Report ID:</span> <span>#{{ report_id }}</span></div>
+                <div class="info-row"><span>Patient:</span> <span>{{ patient_name }}</span></div>
+                <div class="info-row"><span>Time:</span> <span>{{ verification_time }}</span></div>
+                <div class="info-row"><span>Method:</span> <span>{{ verification_method }}</span></div>
+            </div>
+            <div style="text-align: center;">
+                <a href="/patient_portal/{{ report_id }}" class="btn btn-success">View Report</a>
+                <a href="/verify_page" class="btn btn-primary">Verify Another</a>
+            </div>
+        {% else %}
+            <div class="icon error">❌</div>
+            <h1 style="color: #ef4444; text-align: center;">Verification Failed!</h1>
+            <div class="info-box">
+                <div class="info-row"><span>Report ID:</span> <span>#{{ report_id }}</span></div>
+                {% if patient_name %}<div class="info-row"><span>Patient:</span> <span>{{ patient_name }}</span></div>{% endif %}
+                <div class="info-row"><span>Time:</span> <span>{{ verification_time }}</span></div>
+            </div>
+            <div style="text-align: center;">
+                <a href="/verify_page" class="btn btn-primary">Try Again</a>
+                <a href="/" class="btn btn-secondary">Home</a>
+            </div>
+        {% endif %}
+        <div style="text-align: center; margin-top: 20px; color: #999; font-size: 12px;">
+            <p>Verification ID: {{ verification_id }}</p>
+        </div>
+    </div>
+</body>
+</html>

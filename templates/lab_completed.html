@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Completed Tests{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>✅ Completed Tests</h1>
+    <a href="/lab_dashboard" class="btn btn-secondary">← Back to Lab Dashboard</a>
+</div>
+
+<div class="refresh-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div class="refresh-info">
+        <span class="auto-refresh-indicator" style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: #28a745; animation: pulse 2s infinite; margin-right: 10px;"></span>
+        <span>Auto-refreshes every <span id="countdown">15</span> seconds</span>
+    </div>
+    <button class="refresh-btn" onclick="refreshPage()" style="background: #667eea; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer;">
+        <span>🔄</span> Refresh Now
+    </button>
+</div>
+
+<div class="card">
+    <h3>Completed Tests</h3>
+    {% if tests %}
+    <table id="completed-tests-table">
+        <thead>
+            <tr>
+                <th>Test ID</th>
+                <th>Patient</th>
+                <th>Test Type</th>
+                <th>Completed Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for test in tests %}
+            <tr>
+                <td>#{{ test[0] }}</td>
+                <td><strong>{{ test[1] }}</strong></td>
+                <td>
+                    {% if test[2] == 'cbc' %}🩸 CBC
+                    {% elif test[2] == 'diabetes' %}💉 Diabetes
+                    {% elif test[2] == 'lipid' %}🫀 Lipid
+                    {% elif test[2] == 'bp' %}❤️ BP
+                    {% elif test[2] == 'bmi' %}⚖️ BMI
+                    {% else %}{{ test[2] }}{% endif %}
+                </td>
+                <td>{{ test[3] }}</td>
+                <td>
+                    <a href="/test_timeline/{{ test[0] }}" class="btn btn-sm btn-info">Timeline</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info">No completed tests found.</div>
+    {% endif %}
+</div>
+
+<style>
+    @keyframes pulse {
+        0% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.1); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+    
+    @keyframes highlight {
+        0% { background-color: rgba(40, 167, 69, 0.2); }
+        100% { background-color: transparent; }
+    }
+    
+    .new-row {
+        animation: highlight 2s;
+    }
+</style>
+
+<script>
+    // Auto-refresh functionality
+    let timeLeft = 15;
+    const countdownElement = document.getElementById('countdown');
+    
+    function refreshPage() {
+        location.reload();
+    }
+    
+    function updateCountdown() {
+        timeLeft -= 1;
+        if (timeLeft <= 0) {
+            timeLeft = 15;
+            refreshPage();
+        }
+        if (countdownElement) {
+            countdownElement.textContent = timeLeft;
+        }
+    }
+    
+    // Start countdown
+    setInterval(updateCountdown, 1000);
+    
+    // Highlight new rows (if any)
+    document.addEventListener('DOMContentLoaded', function() {
+        const rows = document.querySelectorAll('#completed-tests-table tbody tr');
+        if (rows.length > 0) {
+            // Highlight the most recent test
+            rows[0].classList.add('new-row');
+        }
+    });
+</script>
+{% endblock %}
