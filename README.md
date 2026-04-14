@@ -145,47 +145,7 @@ Plain English assessments
 
 Actionable recommendations
 
-📁 Project Structure
-
-LabSecure-AI/
-│
-├── app.py                    # Main application (2000+ lines)
-├── database.py               # Database initialization and schema
-├── ai_module.py              # ML algorithms for risk scoring
-├── hash_module.py            # Blockchain-inspired chained hashing
-├── qr_module.py              # QR code generation
-├── security_utils.py         # Security helper functions
-├── status_utils.py           # Workflow status management
-├── reference_utils.py        # Reference range checking
-├── notification_service.py   # Email/SMS notifications
-├── pdf_generator.py          # PDF report generation
-├── ml_models.py              # ML prediction models
-├── ml_routes.py              # ML dashboard routes
-├── security_routes.py        # Security dashboard routes
-├── decorators.py             # Role-based access decorators
-│
-├── templates/                # HTML templates (25+ files)
-│   ├── login.html
-│   ├── reception_dashboard.html
-│   ├── collector_dashboard.html
-│   ├── technician_dashboard.html
-│   ├── doctor_dashboard.html
-│   ├── admin_dashboard.html
-│   ├── patient_portal.html
-│   ├── patient_report.html
-│   └── ...
-│
-├── static/                   # Static assets
-│   ├── css/
-│   ├── js/
-│   └── images/
-│
-├── requirements.txt          # Python dependencies
-├── .env.example              # Environment variables template
-├── .gitignore                # Git ignore rules
-└── README.md                 # This file
-
-
+---
 
 🗄️ Database Schema (12 Tables)
 Table	Purpose	Key Fields
