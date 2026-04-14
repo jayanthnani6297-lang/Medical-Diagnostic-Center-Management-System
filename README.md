@@ -92,3 +92,371 @@ LabSecure-AI is a **comprehensive laboratory information management system (LIMS
 ---
 
 ## System Architecture
+
+┌─────────────────────────────────────────────────────────────────┐
+│ PRESENTATION LAYER │
+│ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ │
+│ │ Reception│ │ Collector│ │Technician│ │ Doctor │ │
+│ │ Dashboard│ │ Dashboard│ │Dashboard │ │Dashboard │ │
+│ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ │
+│ ┌────┴─────┐ ┌────┴─────┐ ┌────┴─────┐ ┌────┴─────┐ │
+│ │ Admin │ │ Patient │ │ QR │ │ Mobile │ │
+│ │ Dashboard│ │ Portal │ │ Scan │ │ Access │ │
+│ └──────────┘ └──────────┘ └──────────┘ └──────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+│
+┌─────────────────────────────┼─────────────────────────────────────┐
+│ ▼ │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ APPLICATION LAYER │ │
+│ │ ┌─────────────────────────────────────────────────┐ │ │
+│ │ │ Flask Web Framework │ │ │
+│ │ └───────────┬─────────────────────┬───────────────┘ │ │
+│ │ │ │ │ │
+│ │ ┌───────────▼─────┐ ┌───────────▼─────┐ │ │
+│ │ │ SECURITY MODULE │ │ ML MODULE │ │ │
+│ │ │ - Chained Hash │ │ - Risk Scoring │ │ │
+│ │ │ - HMAC Tokens │ │ - Flag Detection│ │ │
+│ │ │ - QR Generation │ │ - Predictions │ │ │
+│ │ │ - Verification │ │ - Interpretations│ │ │
+│ │ └───────────┬─────┘ └───────────┬─────┘ │ │
+│ │ │ │ │ │
+│ │ ┌───────────▼─────────────────────▼─────┐ │ │
+│ │ │ WORKFLOW MANAGER │ │ │
+│ │ │ - Status Tracking - Notifications │ │ │
+│ │ │ - Audit Logs - Billing │ │ │
+│ │ │ - Auto-verification - PDF Generation │ │ │
+│ │ └─────────────────────────────────────────┘ │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+│
+┌─────────────────────────────┼─────────────────────────────────────┐
+│ ▼ │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ DATA LAYER │ │
+│ │ ┌─────────────────────────────────────────────────┐ │ │
+│ │ │ SQLite Database │ │ │
+│ │ │ Patients │ Tests │ Results │ Reports │ │ │
+│ │ │ Users │ Billing│ Audit │ Tokens │ │ │
+│ │ └─────────────────────────────────────────────────┘ │ │
+│ │ │ │
+│ │ ┌─────────────────────────────────────────────────┐ │ │
+│ │ │ File Storage │ │ │
+│ │ │ QR Codes │ PDF Reports │ Static Assets │ │ │
+│ │ └─────────────────────────────────────────────────┘ │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+
+
+
+
+
+---
+
+## 🔐 Security Architecture
+
+### Layer 1: Access Control
+- Role-Based Access Control (RBAC)
+- Session management with Flask sessions
+- Password hashing using bcrypt
+
+### Layer 2: Data Integrity (Blockchain-Inspired)
+H₀ = "GENESIS"
+H₁ = SHA256(H₀ || content₁ || timestamp₁)
+H₂ = SHA256(H₁ || content₂ || timestamp₂)
+...
+Hₙ = SHA256(Hₙ₋₁ || contentₙ || timestampₙ)
+
+
+ Layer 3: Token Security (HMAC One-Time Tokens)
+```python
+token = secrets.token_urlsafe(32)
+signature = hmac.new(secret_key, f"{report_id}:{token}", hashlib.sha256)
+composite_token = f"{report_id}:{token}:{signature[:16]}"
+```
+Layer 4: Audit Trail
+All actions logged with timestamp
+
+Actor identification and role
+
+IP address tracking
+
+Immutable log storage
+ Machine Learning Engine
+Risk Scoring Algorithm
+Risk Score = (Sugar × 0.30) + (Cholesterol × 0.25) 
+           + (Blood Pressure × 0.25) + (BMI × 0.20)
+
+Risk Level Classification
+Score Range	Risk Level	Action Required
+≥70	Critical	Immediate medical attention
+40-69	High	Schedule appointment within 24-48 hours
+20-39	Moderate	Monitor and follow-up within 2 weeks
+<20	Low	Normal range, continue healthy lifestyle
+Reference Range Checking
+Age and gender-specific reference ranges
+
+Classification: Normal, High, Low, Critical High, Critical Low
+
+Critical values trigger immediate alerts
+
+Patient-Friendly Interpretation  
+Confidence scores (85-95%)
+
+Plain English assessments
+
+Actionable recommendations
+
+📁 Project Structure
+
+LabSecure-AI/
+│
+├── app.py                    # Main application (2000+ lines)
+├── database.py               # Database initialization and schema
+├── ai_module.py              # ML algorithms for risk scoring
+├── hash_module.py            # Blockchain-inspired chained hashing
+├── qr_module.py              # QR code generation
+├── security_utils.py         # Security helper functions
+├── status_utils.py           # Workflow status management
+├── reference_utils.py        # Reference range checking
+├── notification_service.py   # Email/SMS notifications
+├── pdf_generator.py          # PDF report generation
+├── ml_models.py              # ML prediction models
+├── ml_routes.py              # ML dashboard routes
+├── security_routes.py        # Security dashboard routes
+├── decorators.py             # Role-based access decorators
+│
+├── templates/                # HTML templates (25+ files)
+│   ├── login.html
+│   ├── reception_dashboard.html
+│   ├── collector_dashboard.html
+│   ├── technician_dashboard.html
+│   ├── doctor_dashboard.html
+│   ├── admin_dashboard.html
+│   ├── patient_portal.html
+│   ├── patient_report.html
+│   └── ...
+│
+├── static/                   # Static assets
+│   ├── css/
+│   ├── js/
+│   └── images/
+│
+├── requirements.txt          # Python dependencies
+├── .env.example              # Environment variables template
+├── .gitignore                # Git ignore rules
+└── README.md                 # This file
+
+
+
+🗄️ Database Schema (12 Tables)
+Table	Purpose	Key Fields
+patients	Patient information	patient_id, name, age, gender, email, mobile
+patient_tests	Test orders	test_id, patient_id, test_type, status, barcode
+test_results	Test parameters	result_id, test_id, parameter, value, flag
+reports	Final reports	report_id, patient_id, risk_score, hash, qr
+access_tokens	Secure access	token_id, report_id, token, signature, expiry
+users	System users	user_id, username, password_hash, role
+billing	Payment tracking	bill_id, patient_id, amount, receipt
+notifications	Delivery tracking	notif_id, report_id, recipient, status
+audit_logs	Activity logging	log_id, actor, action, ip, timestamp
+reference_ranges	ML reference	range_id, test_type, parameter, normal_range
+status_timeline	Workflow history	timeline_id, test_id, status, changed_by
+feedback	User feedback	feedback_id, user_id, rating, comment
+
+
+
+Installation & Setup
+Prerequisites
+Python 3.8 or higher
+
+pip package manager
+
+Git (optional, for cloning)
+
+Step 1: Clone or Download
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/Medical-Diagnostic-Center-Management-System.git
+
+# Navigate to project directory
+cd Medical-Diagnostic-Center-Management-System
+
+Step 2: Create Virtual Environment (Recommended)
+# Windows
+python -m venv venv
+venv\Scripts\activate
+
+# Linux/Mac
+python3 -m venv venv
+source venv/bin/activate
+
+Step 3: Install Dependencies
+pip install -r requirements.txt
+
+Step 4: Set Up Environment Variables
+# Copy example environment file
+cp .env.example .env
+
+# Edit .env with your values (optional for local development)
+
+Step 5: Initialize Database
+python database.py
+
+Step 6: Run the Application
+python app.py
+
+Step 7: Access the Application
+Open your browser and navigate to:
+http://localhost:5000
+
+
+Default Login Credentials
+Role	Username	Password	Dashboard
+Receptionist	reception	1234	Patient registration, test ordering, billing
+Collector	collector	1234	Sample collection, barcode generation
+Technician	technician	1234	Result entry, ML flagging
+Doctor	doctor	1234	Report review, diagnosis
+
+⚠️ Note: Change default passwords in production environment.
+
+ How It Works
+For Receptionist
+Register new patient with name, age, gender, contact
+
+Select tests (CBC, Diabetes, Lipid, BP, BMI, etc.)
+
+Collect payment and generate receipt
+
+Print sample collection barcode
+
+For Collector
+View pending sample collections
+
+Collect samples from patients
+
+Generate and attach barcode labels
+
+Mark samples as collected
+
+For Technician
+View collected samples ready for processing
+
+Enter test results manually or via machine upload
+
+System automatically flags abnormal values
+
+ML engine calculates risk scores
+
+Mark tests as completed
+
+For Doctor
+Review completed reports
+
+View ML predictions with confidence scores
+
+Add diagnosis and recommendations
+
+Override ML if needed (with reason)
+
+Verify and finalize reports
+
+For Patient
+Receive SMS/Email with secure link
+
+Scan QR code or click link
+
+View report with color-coded results
+
+Read ML interpretations in plain English
+
+Download PDF report
+
+Verify authenticity using hash
+
+🔒 Security Features
+Feature	Implementation
+Password Storage	bcrypt hashing with salt
+Session Security	Flask session with secret key
+Data Integrity	SHA-256 chained hashing
+Access Control	HMAC one-time tokens
+Token Expiry	7-day automatic expiration
+One-Time Use	Tokens invalid after first access
+Audit Trail	Complete logging of all actions
+Input Validation	Server-side validation
+SQL Injection Prevention	Parameterized queries
+📊 API Endpoints
+Endpoint	Method	Description
+/login	POST	User authentication
+/onboard_submit	POST	Register new patient
+/order_test_submit/<id>	POST	Order tests for patient
+/submit_test/<id>	POST	Submit test results
+/machine_upload	POST	Machine result upload
+/add_diagnosis/<id>	GET	Add doctor diagnosis
+/submit_diagnosis/<id>	POST	Submit diagnosis
+/secure_report/<token>	GET	Secure report access
+/verify	POST	Hash verification
+/verify_qr/<id>	GET	QR verification
+/download_report/<id>	GET	PDF download
+/api/report/<id>	GET	JSON report data
+/api/test_status/<id>	GET	JSON test status
+
+Testing
+Sample Test Data
+The system includes synthetic test data generation for demonstration:
+# Simulate machine upload for testing
+POST /simulate_machine/{patient_test_id}
+Test Coverage
+Unit tests for security modules
+
+Integration tests for workflows
+
+User acceptance testing (UAT)
+
+Performance benchmarking
+
+📈 Performance Benchmarks
+Operation	Average Time
+Patient Registration	0.8 seconds
+Test Ordering	0.5 seconds
+Sample Collection	0.3 seconds
+Result Entry (per test)	1.2 seconds
+ML Analysis	0.2 seconds
+Report Generation	2.5 seconds
+QR Code Generation	0.5 seconds
+Token Validation	0.05 seconds
+Hash Verification	0.01 seconds
+PDF Generation	3-5 seconds
+🔄 Workflow State Machine
+Ordered → Collected → Processing → Completed → Verified
+   ↑         ↓           ↓            ↓
+   └────←─── Rejected ←──┴───────────┘
+
+Valid Transitions
+From	To Allowed
+Ordered	Collected, Cancelled
+Collected	Processing, Rejected
+Processing	Completed, Rejected
+Completed	Verified, Rejected
+Verified	(Terminal state)
+Rejected	Ordered
+📝 Environment Variables
+Create a .env file with these optional variables:
+
+License
+This project is licensed under the MIT License - see the LICENSE file for details.
+MIT License
+
+Copyright (c) 2026 [Your Name]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files...
+
+ Contact
+Jayanth Bowrampeta
+
+GitHub: https://github.com/yourusername
+
+LinkedIn: https://linkedin.com/in/jayanth-bowrampeta
+
+Email: jayanthnani6297@gmail.com
+Admin	admin	password	User management, audit logs
