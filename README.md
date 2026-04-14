@@ -91,68 +91,6 @@ LabSecure-AI is a **comprehensive laboratory information management system (LIMS
 
 ---
 
-## System Architecture
-
-┌─────────────────────────────────────────────────────────────────┐
-│ PRESENTATION LAYER │
-│ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ │
-│ │ Reception│ │ Collector│ │Technician│ │ Doctor │ │
-│ │ Dashboard│ │ Dashboard│ │Dashboard │ │Dashboard │ │
-│ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ │
-│ ┌────┴─────┐ ┌────┴─────┐ ┌────┴─────┐ ┌────┴─────┐ │
-│ │ Admin │ │ Patient │ │ QR │ │ Mobile │ │
-│ │ Dashboard│ │ Portal │ │ Scan │ │ Access │ │
-│ └──────────┘ └──────────┘ └──────────┘ └──────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-│
-┌─────────────────────────────┼─────────────────────────────────────┐
-│ ▼ │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ APPLICATION LAYER │ │
-│ │ ┌─────────────────────────────────────────────────┐ │ │
-│ │ │ Flask Web Framework │ │ │
-│ │ └───────────┬─────────────────────┬───────────────┘ │ │
-│ │ │ │ │ │
-│ │ ┌───────────▼─────┐ ┌───────────▼─────┐ │ │
-│ │ │ SECURITY MODULE │ │ ML MODULE │ │ │
-│ │ │ - Chained Hash │ │ - Risk Scoring │ │ │
-│ │ │ - HMAC Tokens │ │ - Flag Detection│ │ │
-│ │ │ - QR Generation │ │ - Predictions │ │ │
-│ │ │ - Verification │ │ - Interpretations│ │ │
-│ │ └───────────┬─────┘ └───────────┬─────┘ │ │
-│ │ │ │ │ │
-│ │ ┌───────────▼─────────────────────▼─────┐ │ │
-│ │ │ WORKFLOW MANAGER │ │ │
-│ │ │ - Status Tracking - Notifications │ │ │
-│ │ │ - Audit Logs - Billing │ │ │
-│ │ │ - Auto-verification - PDF Generation │ │ │
-│ │ └─────────────────────────────────────────┘ │ │
-│ └─────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-│
-┌─────────────────────────────┼─────────────────────────────────────┐
-│ ▼ │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ DATA LAYER │ │
-│ │ ┌─────────────────────────────────────────────────┐ │ │
-│ │ │ SQLite Database │ │ │
-│ │ │ Patients │ Tests │ Results │ Reports │ │ │
-│ │ │ Users │ Billing│ Audit │ Tokens │ │ │
-│ │ └─────────────────────────────────────────────────┘ │ │
-│ │ │ │
-│ │ ┌─────────────────────────────────────────────────┐ │ │
-│ │ │ File Storage │ │ │
-│ │ │ QR Codes │ PDF Reports │ Static Assets │ │ │
-│ │ └─────────────────────────────────────────────────┘ │ │
-│ └─────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-
-
-
-
-
----
-
 ## 🔐 Security Architecture
 
 ### Layer 1: Access Control
@@ -459,4 +397,4 @@ GitHub: https://github.com/yourusername
 LinkedIn: https://linkedin.com/in/jayanth-bowrampeta
 
 Email: jayanthnani6297@gmail.com
-Admin	admin	password	User management, audit logs
+
