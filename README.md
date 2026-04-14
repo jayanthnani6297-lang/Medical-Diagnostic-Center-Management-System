@@ -324,10 +324,8 @@ QR Code Generation	0.5 seconds
 Token Validation	0.05 seconds
 Hash Verification	0.01 seconds
 PDF Generation	3-5 seconds
-🔄 Workflow State Machine
-Ordered → Collected → Processing → Completed → Verified
-   ↑         ↓           ↓            ↓
-   └────←─── Rejected ←──┴───────────┘
+
+---
 
 Valid Transitions
 From	To Allowed
